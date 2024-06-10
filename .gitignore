@@ -4,6 +4,9 @@ __pycache__/
 *$py.class
 *.service
 
+backend/storage/*
+!backend/storage/_tmp
+
 example.py
 
 .DS_Store
