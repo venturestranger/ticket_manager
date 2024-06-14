@@ -1,15 +1,16 @@
 from utils import QueueV1, OrderV1, EventV1
 from utils import DBDriverV1 as ddr1
 from utils import config, get_random_name
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import Response, FileResponse, StreamingResponse
+import jwt
 import os
 
 
 # define views for API V1 endpoints
 class QueueViewV1:
 	@staticmethod
-	async def get(id: str, limit: int, skip: int):
-		note = await ddr1.find_by_id(id, limit, skip,  'queue')
+	async def get(id: str, limit: int, skip: int, all: bool):
+		note = await ddr1.find_by_id(id, limit, skip, all, 'queue')
 		return note
 
 	@staticmethod
@@ -30,8 +31,8 @@ class QueueViewV1:
 
 class OrderViewV1:
 	@staticmethod
-	async def get(id: str, limit: int, skip: int):
-		note = await ddr1.find_by_id(id, limit, skip,  'order')
+	async def get(id: str, limit: int, skip: int, all: bool):
+		note = await ddr1.find_by_id(id, limit, skip, all, 'order')
 		return note
 
 	@staticmethod
@@ -52,8 +53,8 @@ class OrderViewV1:
 
 class EventViewV1:
 	@staticmethod
-	async def get(id: str, limit: int, skip: int):
-		note = await ddr1.find_by_id(id, limit, skip, 'event')
+	async def get(id: str, limit: int, skip: int, all: bool):
+		note = await ddr1.find_by_id(id, limit, skip, all, 'event')
 		return note
 
 	@staticmethod
@@ -115,3 +116,16 @@ class BannerViewV1:
 	async def delete(id: str):
 		os.remove(config.STORAGE_DIR + file)
 		return 'OK'
+
+
+# define handler for other endpoints
+async def auth_handler_v1(key: str):
+	if key == config.API_SECRET_KEY:
+		payload = {
+			'iss': config.TOKEN_ISSUER
+		}
+		auth_token = jwt.encode(payload, config.TOKEN_SECRET_KEY, algorithm='HS256')
+
+		return auth_token
+	else:
+		return Response(content='Forbidden', status_code=403)

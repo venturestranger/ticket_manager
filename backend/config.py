@@ -7,6 +7,10 @@ class Config:
 	STORAGE_DIR = './storage/'
 	RANDOM_NAME_LENGTH = 32
 	STREAM_FILE_CHUNK = 4 * 1024 # 4KB - streaming file package length limit
+	API_SECRET_KEY = 'api'
+	TOKEN_SECRET_KEY = 'some secret key'
+	TOKEN_ISSUER = 'some issuer'
+	AUTH_SKIP = True
 
 
 # define development config

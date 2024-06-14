@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from handlers import QueueViewV1, OrderViewV1, EventViewV1, BannerViewV1
+from handlers import auth_handler_v1
+from middlewares import auth_middleware_v1
 from utils import QueueV1, OrderV1, EventV1
 from utils import config
 
@@ -13,8 +15,8 @@ api_v1 = FastAPI()
 # define API endpoints for V1 version
 # QUEUE endpoints
 @api_v1.get('/queue')
-async def queue_get_v1(id: str = None, limit: int = None, skip: int = None):
-	return await QueueViewV1.get(id, limit, skip)
+async def queue_get_v1(id: str = None, limit: int = None, skip: int = None, all: bool = False):
+	return await QueueViewV1.get(id, limit, skip, all)
 
 @api_v1.post('/queue')
 async def queue_post_v1(note: QueueV1):
@@ -30,8 +32,8 @@ async def queue_delete_v1(id: str):
 
 # ORDER endpoints
 @api_v1.get('/order')
-async def order_get_v1(id: str = None, limit: int = None, skip: int = None):
-	return await OrderViewV1.get(id, limit, skip)
+async def order_get_v1(id: str = None, limit: int = None, skip: int = None, all: bool = False):
+	return await OrderViewV1.get(id, limit, skip, all)
 
 @api_v1.post('/order')
 async def order_post_v1(note: OrderV1):
@@ -47,8 +49,8 @@ async def order_delete_v1(id: str):
 
 # EVENT endpoints
 @api_v1.get('/event')
-async def event_get_v1(id: str = None, limit: int = None, skip: int = None):
-	return await EventViewV1.get(id, limit, skip)
+async def event_get_v1(id: str = None, limit: int = None, skip: int = None, all: bool = False):
+	return await EventViewV1.get(id, limit, skip, all)
 
 @api_v1.post('/event')
 async def event_post_v1(note: EventV1):
@@ -75,6 +77,11 @@ async def banner_post_v1(file: UploadFile):
 async def banner_delete_v1(id: str):
 	return await BannerViewV1.delete(id)
 
+# SECURITY endpoints
+@api_v1.get('/auth')
+async def _auth_handler_v1(key: str = None):
+	return await auth_handler_v1(key)
+
 
 # ensuring api versioning
 app.mount('/api/rest/v1/', api_v1)
@@ -87,6 +94,11 @@ app.add_middleware(
 	allow_methods=['*'],
 	allow_headers=['*']
 )
+
+# ensuring connection validation by JWT tokens
+@api_v1.middleware('http')
+async def _auth_middleware_v1(request: Request, handler):
+	return await auth_middleware_v1(request, handler)
 
 
 # entry points depending on whether python or process manager launches the program

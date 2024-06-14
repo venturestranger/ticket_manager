@@ -14,8 +14,8 @@ config = configs['dev']
 class QueueV1(BaseModel):
 	event_id: str
 	user_id: str
-	queue_start: datetime
-	queue_finish: datetime
+	queue_start: float
+	queue_finish: float
 
 
 class OrderV1(BaseModel):
@@ -40,7 +40,7 @@ def get_random_name():
 # define MongoDB driver functionality
 class DBDriverV1:
 	@staticmethod
-	async def find_by_id(id: str, limit: int, skip: int, collection: str):
+	async def find_by_id(id: str, limit: int, skip: int, all: bool, collection: str):
 		client = AsyncIOMotorClient(config.MONGO_DSN)
 		coll = client[config.DB_NAME][collection]
 
@@ -53,9 +53,16 @@ class DBDriverV1:
 			if limit == None:
 				limit = 1
 
-			docs = coll.find({'active': {'$ne': False}}).skip(skip).limit(limit)
-			ret = []
+			if all == False:
+				docs = coll.find({
+					'active': {'$ne': False}, 
+					'queue_start': {'$not': {'$gt': datetime.timestamp(datetime.now())}},
+					'queue_finish': {'$not': {'$lt': datetime.timestamp(datetime.now())}}
+				}).skip(skip).limit(limit)
+			else:
+				docs = coll.find({}).skip(skip).limit(limit)
 
+			ret = []
 			async for doc in docs:
 				doc['_id'] = str(doc['_id'])
 				ret.append(doc)
