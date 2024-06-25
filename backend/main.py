@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Request, Response, UploadFile
+from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from handlers import QueueViewV1, OrderViewV1, EventViewV1, BannerViewV1
-from handlers import auth_handler_v1
+from handlers import auth_handler_v1, init_queue_handler_v1, book_place_handler_v1, init_session_handler_v1
 from middlewares import auth_middleware_v1
-from utils import QueueV1, OrderV1, EventV1
+from utils import QueueV1, OrderV1, EventV1, SessionV1
 from utils import config
 
 
@@ -81,6 +82,19 @@ async def banner_delete_v1(id: str):
 @api_v1.get('/auth')
 async def _auth_handler_v1(key: str = None):
 	return await auth_handler_v1(key)
+
+# other endpoints
+@api_v1.get('/init_queue')
+async def _init_queue_handler_v1(event_id: str, request: Request, response: Response):
+	return await init_queue_handler_v1(event_id, request, response)
+
+@api_v1.get('/book_place')
+async def _book_place_handler_v1(event_id: str, place_id: str, request: Request, response: Response):
+	return await book_place_handler_v1(event_id, place_id, request, response)
+
+@api_v1.get('/init_sess')
+async def _init_session_handler_v1(session: SessionV1, response: Response):
+	return await init_session_handler_v1(session, response)
 
 
 # ensuring api versioning

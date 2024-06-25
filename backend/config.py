@@ -10,7 +10,12 @@ class Config:
 	API_SECRET_KEY = 'api'
 	TOKEN_SECRET_KEY = 'some secret key'
 	TOKEN_ISSUER = 'some issuer'
+	TOKEN_EXPIRATION = 3600
+	TOKEN_SECRET_KEY = 'some token secret key'
 	AUTH_SKIP = True
+	INFINITE_COOKIE_EXPIRATION = 100000000
+	COOKIE_EXPIRATION = 3600
+	COOKIE_SECURE = False
 
 
 # define development config
