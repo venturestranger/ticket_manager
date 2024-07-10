@@ -92,7 +92,7 @@ async def _init_queue_handler_v1(event_id: str, request: Request, response: Resp
 async def _book_place_handler_v1(event_id: str, place_id: str, request: Request, response: Response):
 	return await book_place_handler_v1(event_id, place_id, request, response)
 
-@api_v1.get('/init_sess')
+@api_v1.post('/init_sess')
 async def _init_session_handler_v1(session: SessionV1, response: Response):
 	return await init_session_handler_v1(session, response)
 
@@ -103,7 +103,7 @@ app.mount('/api/rest/v1/', api_v1)
 # ensuring CORS policy supported
 app.add_middleware(
 	CORSMiddleware,
-	allow_origins=['*'],
+	allow_origins=['http://localhost:3000'],
 	allow_credentials=True,
 	allow_methods=['*'],
 	allow_headers=['*']

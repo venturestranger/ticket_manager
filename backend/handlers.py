@@ -4,6 +4,7 @@ from utils import config, get_random_name, generate_token, validate_token
 from datetime import datetime, timedelta
 from fastapi import Request
 from fastapi.responses import Response, FileResponse, StreamingResponse
+from utils import config
 import jwt
 import os
 
@@ -86,10 +87,6 @@ class BannerViewV1:
 
 			return os.listdir(config.STORAGE_DIR)[skip:skip + limit]
 		else:
-			"""
-			return FileResponse(config.STORAGE_DIR + id, media_type='application/' + id.split()[-1], filename=id)
-			"""
-
 			def read_chunks():
 				with open(config.STORAGE_DIR + id, 'rb') as f:
 					while True:
@@ -120,11 +117,12 @@ class BannerViewV1:
 		return 'OK'
 
 
-# define handler for other endpoints
+# define handlers for other endpoints
 async def auth_handler_v1(key: str):
 	if key == config.API_SECRET_KEY:
 		payload = {
 			'iss': config.TOKEN_ISSUER
+			# 'exp': datetime.utcnow() + timedelta(seconds=config.TOKEN_EXPIRATION)
 		}
 		auth_token = jwt.encode(payload, config.TOKEN_SECRET_KEY, algorithm='HS256')
 
@@ -135,8 +133,8 @@ async def auth_handler_v1(key: str):
 # validate user in the queue for a specific event
 async def init_queue_handler_v1(event_id: str, request: Request, response: Response):
 	try:
-		user_id = validate_token(request.cookies.get('user_id', ''))
-	except:
+		user_id = validate_token(request.cookies.get('user_id', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzb21lIGlzc3VlciIsImV4cCI6MTcxOTkxMzA0NCwiZGF0YSI6eyJtYWlsIjoiYm9nZGFuIn19.zbGzW8YZ2qNYTfLzCvCcEucZlLpBp4xl-UnadgKMrsQ'))
+	except Exception as e:
 		return Response(content='Not Acceptable', status_code=406)
 
 	# check if the user has already got in the queue 
@@ -144,6 +142,7 @@ async def init_queue_handler_v1(event_id: str, request: Request, response: Respo
 
 	# check if the user has already booked a place for this event
 	order_note = await ddr1.find_by_params(user_id=user_id, event_id=event_id, collection='order')
+	print(queue_note, order_note)
 
 	# don't let the user get in the queue 
 	# if the user is already in the valid queue
@@ -178,7 +177,7 @@ async def init_queue_handler_v1(event_id: str, request: Request, response: Respo
 			secure=config.COOKIE_SECURE
 		)
 
-		return 'OK'
+		return { f'{event_id}$queue_start': queue_start, f'{event_id}$queue_finish': queue_finish }
 
 # book a place for a user if they are in the queue
 # and have requested booking in their time span
@@ -221,9 +220,9 @@ async def init_session_handler_v1(session: SessionV1, response: Response):
 		key=f'user_id',
 		value=token,
 		expires=config.COOKIE_EXPIRATION,
-		httponly=True,
+		httponly=False,
 		secure=config.COOKIE_SECURE
 	)
 
-	return 'OK'
+	return { 'user_id': token }
 

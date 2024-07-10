@@ -112,11 +112,19 @@ class DBDriverV1:
 		return ret
 	
 	@staticmethod
-	async def find_by_params(collection: str, **params):
+	async def find_by_params(collection: str, all: bool = False, **params):
 		client = AsyncIOMotorClient(config.MONGO_DSN)
 		coll = client[config.DB_NAME][collection]
 
-		docs = coll.find(params)
+		if all == True:
+			docs = coll.find(params)
+		else:
+			params.update({
+				'active': {'$ne': False}, 
+				'queue_start': {'$not': {'$gt': datetime.timestamp(datetime.utcnow())}},
+				'queue_finish': {'$not': {'$lt': datetime.timestamp(datetime.utcnow())}}
+			})
+			docs = coll.find(params)
 
 		ret = []
 		async for doc in docs:
