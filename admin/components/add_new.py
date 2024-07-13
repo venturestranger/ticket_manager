@@ -11,6 +11,7 @@ def init_add_new_screen_v1(stage=0):
 
 	title = st.text_input('Title:')
 	description = st.text_area('Description:')
+	host = st.selectbox('Host:', ['Main hall', 'Cinema room'], index=0)
 	banner_url = st.text_input('Banner URL:')
 
 	try:
@@ -22,6 +23,7 @@ def init_add_new_screen_v1(stage=0):
 	time_start = st.time_input('_')
 	date_finish = st.date_input('Queue finish time (GMT):')
 	time_finish = st.time_input('__')
+	registration_start_time = st.date_input('Registration start time (GMT):')
 
 	queue_duration = st.number_input('Queue duration (seconds):', step=1, min_value=1, max_value=100000)
 	queue_batch_size = st.number_input('Queue batch size (people):', step=1, min_value=1, max_value=10000)
@@ -29,12 +31,14 @@ def init_add_new_screen_v1(stage=0):
 	queue_start_time = datetime.combine(date_start, time_start)
 	queue_finish_time = datetime.combine(date_finish, time_finish)
 
+	registration_start_time = datetime(registration_start_time.year, registration_start_time.month, registration_start_time.day)
+
 	col1, col2 = st.columns(2)
 	save = col1.button('add', use_container_width=True)
 	cancel = col2.button('cancel', use_container_width=True)
 
 	if save == True:
-		ddr1.insert(collection='event', note={'title': title, 'description': description, 'banner_url': banner_url, 'queue_start_time': queue_start_time.timestamp(), 'queue_finish_time': queue_finish_time.timestamp(), 'queue_duration': queue_duration, 'queue_batch_size': queue_batch_size, 'active': True})
+		ddr1.insert(collection='event', note={'title': title, 'description': description, 'banner_url': banner_url, 'queue_start_time': queue_start_time.timestamp(), 'queue_finish_time': queue_finish_time.timestamp(), 'queue_duration': queue_duration, 'queue_batch_size': queue_batch_size, 'registration_start_time': registration_start_time.timestamp(), 'host': host, 'active': True})
 		return 1
 	elif cancel == True:
 		return 0

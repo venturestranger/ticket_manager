@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Request, Response, UploadFile
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
-from handlers import QueueViewV1, OrderViewV1, EventViewV1, BannerViewV1
-from handlers import auth_handler_v1, init_queue_handler_v1, book_place_handler_v1, init_session_handler_v1
+from handlers import QueueViewV1, OrderViewV1, EventViewV1, HostViewV1, BannerViewV1
+from handlers import auth_handler_v1, init_queue_handler_v1, book_place_handler_v1, init_session_handler_v1, list_queues_handler_v1, fetch_host_handler_v1
 from middlewares import auth_middleware_v1
-from utils import QueueV1, OrderV1, EventV1, SessionV1
+from utils import QueueV1, OrderV1, EventV1, HostV1, InitSessionRequestV1, BookRequestV1, InitQueueRequestV1
 from utils import config
 
 
@@ -65,6 +65,23 @@ async def event_put_v1(id: str, note: EventV1):
 async def event_delete_v1(id: str):
 	return await EventViewV1.delete(id)
 
+# HOST endpoints
+@api_v1.get('/host')
+async def host_get_v1(id: str = None, limit: int = None, skip: int = None, all: bool = False):
+	return await HostViewV1.get(id, limit, skip, all)
+
+@api_v1.post('/host')
+async def host_post_v1(note: HostV1):
+	return await HostViewV1.post(note)
+
+@api_v1.put('/host')
+async def host_put_v1(id: str, note: HostV1):
+	return await HostViewV1.put(id, note)
+
+@api_v1.delete('/host')
+async def host_delete_v1(id: str):
+	return await HostViewV1.delete(id)
+
 # BANNER (File manager) endpoints
 @api_v1.get('/banner')
 async def banner_get_v1(id: str = None, limit: int = None, skip: int = None):
@@ -84,18 +101,25 @@ async def _auth_handler_v1(key: str = None):
 	return await auth_handler_v1(key)
 
 # other endpoints
-@api_v1.get('/init_queue')
-async def _init_queue_handler_v1(event_id: str, request: Request, response: Response):
-	return await init_queue_handler_v1(event_id, request, response)
+@api_v1.post('/init_queue')
+async def _init_queue_handler_v1(request: InitQueueRequestV1, response: Response):
+	return await init_queue_handler_v1(request, response)
 
-@api_v1.get('/book_place')
-async def _book_place_handler_v1(event_id: str, place_id: str, request: Request, response: Response):
-	return await book_place_handler_v1(event_id, place_id, request, response)
+@api_v1.post('/book_place')
+async def _book_place_handler_v1(request: BookRequestV1, response: Response):
+	return await book_place_handler_v1(request, response)
 
 @api_v1.post('/init_sess')
-async def _init_session_handler_v1(session: SessionV1, response: Response):
-	return await init_session_handler_v1(session, response)
+async def _init_session_handler_v1(request: InitSessionRequestV1, response: Response):
+	return await init_session_handler_v1(request, response)
 
+@api_v1.get('/list_queues')
+async def _list_queues_handler_v1(user_id: str, response: Response):
+	return await list_queues_handler_v1(user_id, response)
+
+@api_v1.get('/fetch_host')
+async def _fetch_host_handler_v1(name: str, response: Response):
+	return await fetch_host_handler_v1(name, response)
 
 # ensuring api versioning
 app.mount('/api/rest/v1/', api_v1)

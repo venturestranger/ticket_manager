@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Extra
 from datetime import datetime, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
@@ -30,14 +30,36 @@ class EventV1(BaseModel):
 	banner_url: str
 	description: str
 	title: str
+	registration_start_time: float
 	queue_start_time: float
 	queue_finish_time: float
 	queue_duration: float
 	queue_batch_size: int
+	host: str
 	active: bool | None = False
 
 
-class SessionV1(BaseModel):
+class HostV1(BaseModel):
+	name: str
+	floors: int
+	sections: list[list[str]]
+	
+	class Config:
+		extra = Extra.allow
+
+
+class InitQueueRequestV1(BaseModel):
+	user_id: str
+	event_id: str
+
+
+class BookRequestV1(BaseModel):
+	user_id: str
+	event_id: str
+	place_id: str
+
+
+class InitSessionRequestV1(BaseModel):
 	mail: str
 
 
@@ -98,7 +120,6 @@ class DBDriverV1:
 			if all == False:
 				docs = coll.find({
 					'active': {'$ne': False}, 
-					'queue_start': {'$not': {'$gt': datetime.timestamp(datetime.utcnow())}},
 					'queue_finish': {'$not': {'$lt': datetime.timestamp(datetime.utcnow())}}
 				}).skip(skip).limit(limit)
 			else:
@@ -121,7 +142,6 @@ class DBDriverV1:
 		else:
 			params.update({
 				'active': {'$ne': False}, 
-				'queue_start': {'$not': {'$gt': datetime.timestamp(datetime.utcnow())}},
 				'queue_finish': {'$not': {'$lt': datetime.timestamp(datetime.utcnow())}}
 			})
 			docs = coll.find(params)
