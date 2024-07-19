@@ -6,5 +6,7 @@ const apiHeaders = {
 	'ngrok-skip-browser-warning': '*'
 }
 const cookiesExpirationDays = 1
+const bookingRefreshPageTime = 1000
+const queuesRefreshPageTime = 5000
 
-export { apiUrl, apiToken, apiHeaders, cookiesExpirationDays }
+export { apiUrl, apiToken, apiHeaders, cookiesExpirationDays, bookingRefreshPageTime, queuesRefreshPageTime }

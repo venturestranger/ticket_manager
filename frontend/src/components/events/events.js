@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays } from '../../config.js'
 import { formatTime } from '../../utils.js'
+import { useNavigate } from 'react-router-dom'
 import Navbar from '../../components/navbar/navbar.js'
 import Cookies from 'js-cookie'
 import logo from '../../logo.svg'
@@ -11,15 +12,18 @@ function Events() {
 	const [events, setEvents] = useState([])
 	const [expanded, setExpanded] = useState(-1)
 	const [token, setToken] = useState(-1)
+	const [systemMessage, setSystemMessage] = useState(undefined)
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		axios.get(`${apiUrl}/event?limit=1000000`, { headers: apiHeaders })
 		.then(resp => {
 			setEvents(resp.data)
-			// console.log(Cookies.get('${}'))
 		})
 		.catch(err => {
-			// console.log(err)
+			localStorage.setItem('msg', `${err.response.status}. Something went wrong. Contact the administrator.`)
+			localStorage.setItem('level', 'error')
+			navigate('/info')
 		})
 	}, [])
 
@@ -34,19 +38,33 @@ function Events() {
 		axios.post(`${apiUrl}/init_queue`, { event_id: id, user_id: Cookies.get('user_id') }, { withCredentials: true, headers: apiHeaders })
 		.then(resp => {
 			// console.log(resp.data)
-
-			for (const key in resp.data) {
-				Cookies.set(key, resp.data[key], { expires: cookiesExpirationDays })
-			}
+			setSystemMessage('You have registered in the queue.')
 		})
 		.catch(err => {
-			// console.log(err)
+			if (err.response.status == 401) {
+				localStorage.setItem('msg', '403. Your site session has expired. Reload the page.')
+				localStorage.setItem('level', 'error')
+				navigate('/info')
+			} else if (err.response.status == 403) {
+				localStorage.setItem('msg', '403. Authorize using "Log In" button below.')
+				localStorage.setItem('level', 'error')
+				navigate('/info')
+			} else if (err.response.status == 409) {
+				localStorage.setItem('msg', '409. You have either already registered in the queue or booked a seat.')
+				localStorage.setItem('level', 'error')
+				navigate('/info')
+			} else {
+				localStorage.setItem('msg', `${err.response.status}. Something went wrong. Contact the administrator.`)
+				localStorage.setItem('level', 'error')
+				navigate('/info')
+			}
 		})
 	}
 
 	return (
 		<div className="App">
 			<h1 className='mt-3'> Events: </h1>
+			<h1> { systemMessage } </h1>
 	
 			<div className="container mt-3 mb-4">
 				<div className="column">

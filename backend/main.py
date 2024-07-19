@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, Response, UploadFile
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from handlers import QueueViewV1, OrderViewV1, EventViewV1, HostViewV1, BannerViewV1
-from handlers import auth_handler_v1, init_queue_handler_v1, book_place_handler_v1, init_session_handler_v1, list_queues_handler_v1, fetch_host_handler_v1
+from handlers import auth_handler_v1, init_queue_handler_v1, book_place_handler_v1, init_session_handler_v1, list_queues_handler_v1, fetch_host_handler_v1, fetch_taken_seats_v1
 from middlewares import auth_middleware_v1
 from utils import QueueV1, OrderV1, EventV1, HostV1, InitSessionRequestV1, BookRequestV1, InitQueueRequestV1
 from utils import config
@@ -120,6 +120,10 @@ async def _list_queues_handler_v1(user_id: str, response: Response):
 @api_v1.get('/fetch_host')
 async def _fetch_host_handler_v1(name: str, response: Response):
 	return await fetch_host_handler_v1(name, response)
+
+@api_v1.get('/fetch_taken_seats')
+async def _fetch_taken_seats_v1(event_id: str, response: Response):
+	return await fetch_taken_seats_v1(event_id, response)
 
 # ensuring api versioning
 app.mount('/api/rest/v1/', api_v1)

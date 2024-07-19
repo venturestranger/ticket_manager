@@ -1,4 +1,5 @@
 from config import Config
+from datetime import timezone
 import datetime
 import pymongo
 from bson import ObjectId
@@ -10,7 +11,7 @@ config = Config
 
 # format the timestamp date object
 def convert_timestamp(timestamp):
-	date_object = datetime.datetime.fromtimestamp(timestamp)
+	date_object = datetime.datetime.utcfromtimestamp(timestamp)
 	return date_object.strftime("%Y-%m-%d %H:%M:%S")
 
 

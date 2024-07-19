@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Extra
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 from config import configs
@@ -17,7 +17,6 @@ class QueueV1(BaseModel):
 	user_id: str
 	queue_start: float
 	queue_finish: float
-	batch_id: str
 
 
 class OrderV1(BaseModel):
@@ -54,8 +53,8 @@ class InitQueueRequestV1(BaseModel):
 
 
 class BookRequestV1(BaseModel):
-	user_id: str
 	event_id: str
+	user_id: str
 	place_id: str
 
 
@@ -85,7 +84,7 @@ def validate_token(token):
 def generate_token(**kargs):
 	payload = {
 		'iss': config.TOKEN_ISSUER,
-		'exp': datetime.utcnow() + timedelta(seconds=config.TOKEN_EXPIRATION),
+		'exp': datetime.utcnow().replace(tzinfo=timezone.utc) + timedelta(seconds=config.TOKEN_EXPIRATION),
 		'data': {
 		}
 	}
@@ -120,7 +119,7 @@ class DBDriverV1:
 			if all == False:
 				docs = coll.find({
 					'active': {'$ne': False}, 
-					'queue_finish': {'$not': {'$lt': datetime.timestamp(datetime.utcnow())}}
+					'queue_finish': {'$not': {'$lt': datetime.timestamp(datetime.utcnow().replace(tzinfo=timezone.utc))}}
 				}).skip(skip).limit(limit)
 			else:
 				docs = coll.find({}).skip(skip).limit(limit)
@@ -142,7 +141,7 @@ class DBDriverV1:
 		else:
 			params.update({
 				'active': {'$ne': False}, 
-				'queue_finish': {'$not': {'$lt': datetime.timestamp(datetime.utcnow())}}
+				'queue_finish': {'$not': {'$lt': datetime.timestamp(datetime.utcnow().replace(tzinfo=timezone.utc))}}
 			})
 			docs = coll.find(params)
 

@@ -1,7 +1,7 @@
 from utils import QueueV1, OrderV1, EventV1, HostV1, InitSessionRequestV1, BookRequestV1, InitQueueRequestV1
 from utils import DBDriverV1 as ddr1
 from utils import config, get_random_name, generate_token, validate_token
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import Request
 from fastapi.responses import Response, FileResponse, StreamingResponse
 from utils import config
@@ -143,8 +143,8 @@ class BannerViewV1:
 async def auth_handler_v1(key: str):
 	if key == config.API_SECRET_KEY:
 		payload = {
-			'iss': config.TOKEN_ISSUER
-			# 'exp': datetime.utcnow() + timedelta(seconds=config.TOKEN_EXPIRATION)
+			'iss': config.TOKEN_ISSUER,
+			'exp': datetime.utcnow() + timedelta(seconds=config.TOKEN_EXPIRATION)
 		}
 		auth_token = jwt.encode(payload, config.TOKEN_SECRET_KEY, algorithm='HS256')
 
@@ -186,7 +186,7 @@ async def init_queue_handler_v1(request: InitQueueRequestV1, response: Response)
 
 		await ddr1.insert({'user_id': user_id, 'event_id': request.event_id,'queue_start': queue_start, 'queue_finish': queue_finish, 'title': event.get('title', None)}, 'queue')
 
-		return { f'{request.event_id}$queue_start': queue_start, f'{request.event_id}$queue_finish': queue_finish }
+		return 'OK'
 
 # book a place for a user if they are in the queue
 # and have requested booking in their time span
@@ -194,24 +194,20 @@ async def book_place_handler_v1(request: BookRequestV1, response: Response):
 	try:
 		user_id = validate_token(request.user_id)['mail']
 	except:
-		return response(content='forbidden', status_code=403)
+		return Response(content='Forbidden', status_code=403)
 
-	# check if the user is in the queue
-	queue_note = await ddr1.find_by_params(user_id=user_id, event_id=request.event_id, collection='queue')
+	# check if someone has already booked the place
+	another_order_note = await ddr1.find_by_params(place_id=request.place_id, event_id=request.event_id, collection='order')
 
 	# check if the user has already booked a place
 	order_note = await ddr1.find_by_params(user_id=user_id, event_id=request.event_id, collection='order')
 
-	if len(queue_note) == 0:
-		queue_note = {}
-	else:
-		queue_note = queue_note[0]
-
 	# do not let the user book a place
 	# if they have already done that
-	# or if their queue has expired
-	if len(order_note) != 0 or queue_note.get('queue_start', -1) > datetime.timestamp(datetime.utcnow()) or queue_note.get('queue_finish', -1) < datetime.timestamp(datetime.utcnow()):
+	if len(order_note) != 0:
 		return Response(content='Conflict', status_code=409)
+	elif len(another_order_note) != 0:
+		return Response(content='Not Acceptable', status_code=406)
 	else:
 		await ddr1.insert({'user_id': user_id, 'event_id': request.event_id, 'place_id': request.place_id}, 'order')
 
@@ -242,3 +238,13 @@ async def fetch_host_handler_v1(name: str, response: Response):
 		return None
 	else:
 		return host[0]
+	
+# fetch taken seats 
+async def fetch_taken_seats_v1(event_id: str, response: Response):
+	orders = await ddr1.find_by_params(event_id=event_id, collection='order')
+
+	ret = []
+	for i in orders:
+		ret.append(i.get('place_id', None))
+
+	return list(filter(lambda x: x != None, ret))

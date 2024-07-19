@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import datetime
 from datetime import timedelta
+from datetime import timezone
 from utils import config, convert_timestamp
 from utils import DBDriverV1 as ddr1 
 
@@ -14,7 +15,7 @@ def list_events_v1(skip=0, limit=10):
 
 	for idx, note in enumerate(data):
 		st.info(f"""
-		**{note.get('title', '_')}**
+		**{note.get('title', '_')}** is **{'Active' if note.get('active', False) else 'Inactive'}**
 
 		{note.get('description', '_')}
 
@@ -22,11 +23,11 @@ def list_events_v1(skip=0, limit=10):
 
 		---
 
-		**Registration start time**: {convert_timestamp(note.get('registration_start_time', 0))} GMT
+		**Registration start time**: {convert_timestamp(note.get('registration_start_time', 0))} (GMT, +5 for local)
 
-		**Queue start time**: {convert_timestamp(note.get('queue_start_time', 0))} GMT
+		**Queue start time**: {convert_timestamp(note.get('queue_start_time', 0))} (GMT, +5 for local)
 
-		**Queue finish time**: {convert_timestamp(note.get('queue_finish_time', 0))} GMT
+		**Queue finish time**: {convert_timestamp(note.get('queue_finish_time', 0))} (GMT, +5 for local)
 
 		**Queue duration**: {int(note.get('queue_duration', 0) // 60)} minutes {int(note.get('queue_duration', 0) % 60)} seconds
 
@@ -64,29 +65,28 @@ def edit_tool_v1(id):
 
 	title = st.text_input('Title:', value=data.get('title', ''))
 	description = st.text_area('Description:', value=data.get('description', ''))
-
 	host = st.selectbox('Host:', ['Main hall', 'Cinema room'], index=0)
-
 	banner_url = st.text_input('Banner URL:', value=data.get('banner_url', ''))
+	active = st.toggle('Event is active', value=data.get('active', False))
 
 	try:
 		st.image(banner_url)
 	except:
 		pass
 
-	date_start = st.date_input('Queue start time (GMT) **(Please, DO NOT change it without any urgent necessity)**:')
+	date_start = st.date_input('Queue start time (GMT, +5 for local) **(Please, DO NOT change it without any urgent necessity)**:')
 	time_start = st.time_input('_')
-	date_finish = st.date_input('Queue finish time (GMT):')
+	date_finish = st.date_input('Queue finish time (GMT, +5 for local):')
 	time_finish = st.time_input('__')
 	registration_start_time = st.date_input('Registration start time (GMT):')
 
 	queue_duration = st.number_input('Queue duration (seconds):', value=data.get('queue_duration', 60), step=1, min_value=1, max_value=100000)
 	queue_batch_size = st.number_input('Queue batch size (people):', value=data.get('queue_batch_size', 1), step=1, min_value=1, max_value=10000)
 
-	queue_start_time = datetime.combine(date_start, time_start)
-	queue_finish_time = datetime.combine(date_finish, time_finish)
+	queue_start_time = datetime.combine(date_start, time_start).replace(tzinfo=timezone.utc)
+	queue_finish_time = datetime.combine(date_finish, time_finish).replace(tzinfo=timezone.utc)
 
-	registration_start_time = datetime(registration_start_time.year, registration_start_time.month, registration_start_time.day)
+	registration_start_time = datetime(registration_start_time.year, registration_start_time.month, registration_start_time.day).replace(tzinfo=timezone.utc)
 
 	col1, col2 = st.columns(2)
 	save = col1.button('save', use_container_width=True)
@@ -96,7 +96,7 @@ def edit_tool_v1(id):
 	confirm = st.checkbox('I confirm the action (for **save** and **remove**)')
 
 	if save == True and confirm == True:
-		ddr1.update_by_id(id=id, collection='event', note={'title': title, 'description': description, 'banner_url': banner_url, 'queue_start_time': queue_start_time.timestamp(), 'queue_finish_time': queue_finish_time.timestamp(), 'queue_duration': queue_duration, 'queue_batch_size': queue_batch_size, 'registration_start_time': registration_start_time.timestamp(), 'host': host, 'active': True})
+		ddr1.update_by_id(id=id, collection='event', note={'title': title, 'description': description, 'banner_url': banner_url, 'queue_start_time': queue_start_time.timestamp(), 'queue_finish_time': queue_finish_time.timestamp(), 'queue_duration': queue_duration, 'queue_batch_size': queue_batch_size, 'registration_start_time': registration_start_time.timestamp(), 'host': host, 'active': active})
 		return 1
 	elif cancel == True:
 		return 0
