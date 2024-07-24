@@ -2,10 +2,15 @@ from pydantic import BaseModel, Extra
 from datetime import datetime, timedelta, timezone
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
+
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 from config import configs
 import jwt
 import random
-
+import threading
 
 # intialize config
 config = configs['dev']
@@ -23,6 +28,7 @@ class OrderV1(BaseModel):
 	event_id: str
 	user_id: str
 	place_id: str
+	timestamp: float
 
 
 class EventV1(BaseModel):
@@ -97,6 +103,7 @@ def generate_token(**kargs):
 	token = jwt.encode(payload, config.TOKEN_SECRET_KEY, algorithm='HS256')
 	return token
 
+
 # define MongoDB driver functionality
 class DBDriverV1:
 	@staticmethod
@@ -106,7 +113,7 @@ class DBDriverV1:
 
 		if id != None:
 			object_id = ObjectId(id)
-			ret = await coll.find_one({'_id': object_id, 'active': {'$ne': False}})
+			ret = await coll.find_one({'_id': object_id})
 
 			if ret != None:
 				ret['_id'] = str(ret['_id'])
@@ -174,6 +181,13 @@ class DBDriverV1:
 		object_id = ObjectId(id)
 
 		await coll.delete_one({'_id': object_id})
+
+	@staticmethod
+	async def remove_by_params(collection: str, **params):
+		client = AsyncIOMotorClient(config.MONGO_DSN)
+		coll = client[config.DB_NAME][collection]
+
+		await coll.delete_many(params)
 	
 	@staticmethod
 	async def increment_by_ref_id(ref_id: str, counter:str, collection: str):
@@ -183,3 +197,27 @@ class DBDriverV1:
 		doc = await coll.find_one_and_update({'ref_id': ref_id}, {'$inc': {counter: 1}}, upsert=True, new=True)
 
 		return doc.get(counter, 1)
+
+
+# define a function to send emails
+class EmailClientV1:
+	@staticmethod
+	def send_booking_info(receiver_email, booking_info):
+		def _threaded():
+			msg = MIMEMultipart()
+			msg['From'] = config.EMAIL_LOGIN
+			msg['To'] = receiver_email
+			msg['Subject'] = config.EMAIL_SUBJECT
+			msg.attach(MIMEText(config.EMAIL_BOOKING_MESSAGE_TEMPLATE + booking_info, 'plain'))
+
+			try:
+				server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+				server.login(config.EMAIL_LOGIN, config.EMAIL_PASSWORD)
+				server.sendmail(msg['From'], msg['To'], msg.as_string())
+				server.quit()
+			except Exception as e:
+				print(e)
+
+		task = threading.Thread(target=_threaded)
+		task.start()
+

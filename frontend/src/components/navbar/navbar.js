@@ -19,10 +19,10 @@ function Navbar() {
 	return (
 		<nav className="navbar fixed-bottom navbar-expand-sm navbar-light bg-dark justify-content-around">
 			<Link className="nav-link text-white" to="/">
-				Эвенты
+				Events
 			</Link>
 			<Link className="nav-link text-white" to="/queues">
-				Очереди
+				Queues
 			</Link>
 			<button onClick={ () => logIn() }>
 				log in

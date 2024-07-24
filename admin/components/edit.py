@@ -2,7 +2,7 @@ import streamlit as st
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
-from utils import config, convert_timestamp
+from utils import config, convert_timestamp, fetch_seats_xlsx, generate_token
 from utils import DBDriverV1 as ddr1 
 
 
@@ -74,11 +74,19 @@ def edit_tool_v1(id):
 	except:
 		pass
 
+	st.write('---')
+
+	registration_start_time = st.date_input('Registration start time (GMT):')
+
 	date_start = st.date_input('Queue start time (GMT, +5 for local) **(Please, DO NOT change it without any urgent necessity)**:')
 	time_start = st.time_input('_')
+
+	st.write('---')
+
 	date_finish = st.date_input('Queue finish time (GMT, +5 for local):')
 	time_finish = st.time_input('__')
-	registration_start_time = st.date_input('Registration start time (GMT):')
+
+	st.write('---')
 
 	queue_duration = st.number_input('Queue duration (seconds):', value=data.get('queue_duration', 60), step=1, min_value=1, max_value=100000)
 	queue_batch_size = st.number_input('Queue batch size (people):', value=data.get('queue_batch_size', 1), step=1, min_value=1, max_value=10000)
@@ -88,6 +96,25 @@ def edit_tool_v1(id):
 
 	registration_start_time = datetime(registration_start_time.year, registration_start_time.month, registration_start_time.day).replace(tzinfo=timezone.utc)
 
+	st.write('---')
+
+	fetch = st.button('fetch booked seats', use_container_width=True)
+
+	if fetch == True:
+		doc, mime_type = fetch_seats_xlsx(data.get('_id'))
+
+		with open(doc, 'rb') as file:
+			st.download_button(
+				label="download XLSX",
+				data=file,
+				file_name="data.xlsx",
+				mime=mime_type
+			)
+		
+	st.write('Prebooking: ' + config.PREBOOKING_WEB_PATH + data.get('_id', '_') + '/' + data.get('hash', '_'))
+
+	st.write('---')
+
 	col1, col2 = st.columns(2)
 	save = col1.button('save', use_container_width=True)
 	remove = col2.button('remove', use_container_width=True)
@@ -96,12 +123,14 @@ def edit_tool_v1(id):
 	confirm = st.checkbox('I confirm the action (for **save** and **remove**)')
 
 	if save == True and confirm == True:
-		ddr1.update_by_id(id=id, collection='event', note={'title': title, 'description': description, 'banner_url': banner_url, 'queue_start_time': queue_start_time.timestamp(), 'queue_finish_time': queue_finish_time.timestamp(), 'queue_duration': queue_duration, 'queue_batch_size': queue_batch_size, 'registration_start_time': registration_start_time.timestamp(), 'host': host, 'active': active})
+		ddr1.update_by_id(id=id, collection='event', note={'title': title, 'description': description, 'banner_url': banner_url, 'queue_start_time': queue_start_time.timestamp(), 'queue_finish_time': queue_finish_time.timestamp(), 'queue_duration': queue_duration, 'queue_batch_size': queue_batch_size, 'registration_start_time': registration_start_time.timestamp(), 'host': host, 'active': active, 'hash': generate_token(content=title)})
 		return 1
 	elif cancel == True:
 		return 0
 	elif remove == True and confirm == True:
 		ddr1.remove_by_id(id=id, collection='event')
+		ddr1.remove_by_params(event_id=id, collection='queue')
+		ddr1.remove_by_params(event_id=id, collection='order')
 		return 2
 
 

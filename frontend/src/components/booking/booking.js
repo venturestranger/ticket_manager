@@ -10,6 +10,7 @@ import axios from 'axios'
 
 function Booking() {
 	const [host, setHost] = useState({ floors: 0, sections: [[]], map_0_0: [] })
+	const [hostName, setHostName] = useState(undefined)
 	const [selectedFloor, setSelectedFloor] = useState(0)
 	const [selectedPart, setSelectedPart] = useState('0')
 	const [selectedSeat, setSelectedSeat] = useState(undefined)
@@ -34,6 +35,13 @@ function Booking() {
 		axios.delete(`${apiUrl}/queue?id=${queue_id}`, { headers: apiHeaders })
 	}
 
+	const callAlert = (msg, level) => {
+		revokeQeueueCookies()
+		localStorage.setItem('msg', msg)
+		localStorage.setItem('level', level)
+		navigate('/info')
+	}
+
 	useEffect(() => {
 		const intervalId = setInterval(() => {
 			setTimer(prevTimer => prevTimer + 1)
@@ -42,68 +50,76 @@ function Booking() {
 		// check if the user is logged in (cannot access from logged in)
 		if (user_id == undefined) {
 			// render not authorized
-			revokeQeueueCookies()
-			localStorage.setItem('msg', '403. Authorize using "Log In" button below.')
-			localStorage.setItem('level', 'error')
-			navigate('/info')
+			callAlert('403. Authorize using "Log In" button below.', 'error')
 		}
 
 		// check if the user has properly get in the queue (cannot access without registering in the queue)
 		if (queue_start == undefined || queue_finish == undefined) {
 			// render invalid access
-			revokeQeueueCookies()
-			localStorage.setItem('msg', '406. Acquire access to this page via "Queues" button below.')
-			localStorage.setItem('level', 'error')
-			navigate('/info')
+			callAlert('406. Acquire access to this page via "Queues" button below.', 'error')
 		}
 
 		// check if it is before the interval
 		if (Date.now() / 1000 < queue_start) {
 			// render not ready
-			revokeQeueueCookies()
-			localStorage.setItem('msg', '406. An access to this page will be given in awhile.')
-			localStorage.setItem('level', 'error')
-			navigate('/info')
+			callAlert('406. An access to this page will be given in awhile.', 'error')
 		}
 
 		// check if it is after the interval (remove queue if expired)
 		if (Date.now() / 1000 > queue_finish) {
-			revokeQeueueCookies()
-			localStorage.setItem('msg', '410. Your queue time has expired.')
-			localStorage.setItem('level', 'error')
-			navigate('/info')
+			callAlert('410. Your queue time has expired.', 'error')
 		}
 
-		// fetch the name of the host
-		axios.get(`${apiUrl}/fetch_host?name=Main hall`, { headers: apiHeaders })
-		.then(resp => {
-			setHost(resp.data)
+		// fetch the name of the host (using caching also)
+		if (hostName == undefined) {
+			axios.get(`${apiUrl}/event?id=${event_id}`, { headers: apiHeaders })
+			.then(resp => {
+				axios.get(`${apiUrl}/fetch_host?name=${resp.data.host}`, { headers: apiHeaders })
+				.then(resp => {
+					setHost(resp.data)
 
-			if (timer == 0) {
-				setSelectedFloor(0)
-				setSelectedPart(resp.data.sections[0][0])
-			}
-		})
-		.catch(err => {
-			// console.log(err)
-			revokeQeueueCookies()
-			localStorage.setItem('msg', `${err.response.status}. Something went wrong. Contact the administrator.`)
-			localStorage.setItem('level', 'error')
-			navigate('/info')
-		})
+					if (timer == 0) {
+						setSelectedFloor(0)
+						setSelectedPart(resp.data.sections[0][0])
+					}
+				})
+				.catch(err => {
+					// console.log(err)
+					callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
+				})
+			})
+			.catch(err => {
+				if (err.response.status == 401) {
+					callAlert('401. Your site session has expired. Reload the page.', 'error')
+				} else {
+					callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
+				}
+			})
+		} else {
+			axios.get(`${apiUrl}/fetch_host?name=${hostName}`, { headers: apiHeaders })
+			.then(resp => {
+				setHost(resp.data)
+
+				if (timer == 0) {
+					setSelectedFloor(0)
+					setSelectedPart(resp.data.sections[0][0])
+				}
+			})
+			.catch(err => {
+				// console.log(err)
+				callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
+			})
+		}
 
 		axios.get(`${apiUrl}/fetch_taken_seats?event_id=${event_id}`, { headers: apiHeaders })
 		.then(resp => {
-			console.log(resp.data)
+			// console.log(resp.data)
 
 			setTakenSeats(resp.data)
 		})
 		.catch(err => {
 			// console.log(err)
-			revokeQeueueCookies()
-			localStorage.setItem('msg', `${err.response.status}. Something went wrong. Contact the administrator.`)
-			localStorage.setItem('level', 'error')
-			navigate('/info')
+			callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
 		})
 
 		return () => clearInterval(intervalId)
@@ -120,32 +136,20 @@ function Booking() {
 		} else if (takenSeats.includes(selectedSeat) == false) {
 			axios.post(`${apiUrl}/book_place`, { event_id: event_id, user_id: user_id, place_id: selectedSeat }, { headers: apiHeaders })
 			.then(resp => {
-				revokeQeueueCookies()
 				removeFromQueue()
-				localStorage.setItem('msg', '200. Your have booked a seat. You will receive a verification letter via Email. Show the letter when attending the event.')
-				localStorage.setItem('level', 'success')
-				navigate('/info')
+				callAlert('200. Your have booked a seat. You will receive a verification letter via Email. Show the letter when attending the event.', 'success')
 			})
 			.catch(err => {
-				revokeQeueueCookies()
 				if (err.response.status == 401) {
-					localStorage.setItem('msg', '403. Your site session has expired. Reload the page.')
-					localStorage.setItem('level', 'error')
-					navigate('/info')
+					callAlert('401. Your site session has expired. Reload the page.', 'error')
 				} else if (err.response.status == 403) {
-					localStorage.setItem('msg', '403. Your login session has expired. Reauthorize using the "Log In" button below.')
-					localStorage.setItem('level', 'error')
-					navigate('/info')
+					callAlert('403. Your login session has expired. Reauthorize using the "Log In" button below.', 'error')
 				} else if (err.response.status == 409) {
-					localStorage.setItem('msg', '409. You have already booked a seat for this event. You cannot rebook a seat.')
-					localStorage.setItem('level', 'error')
-					navigate('/info')
+					callAlert('409. You have already booked a seat for this event. You cannot rebook a seat.', 'error')
 				} else if (err.response.status == 406) {
 					setSystemMessage('The seat is already taken.')
 				} else {
-					localStorage.setItem('msg', `${err.response.status}. Something went wrong. Contact the administrator.`)
-					localStorage.setItem('level', 'error')
-					navigate('/info')
+					callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
 				}
 			})
 		} else {

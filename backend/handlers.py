@@ -1,10 +1,11 @@
 from utils import QueueV1, OrderV1, EventV1, HostV1, InitSessionRequestV1, BookRequestV1, InitQueueRequestV1
-from utils import DBDriverV1 as ddr1
+from utils import DBDriverV1 as ddr1, EmailClientV1 as email1
 from utils import config, get_random_name, generate_token, validate_token
 from datetime import datetime, timedelta, timezone
 from fastapi import Request
 from fastapi.responses import Response, FileResponse, StreamingResponse
 from utils import config
+from json import loads
 import jwt
 import os
 
@@ -202,6 +203,9 @@ async def book_place_handler_v1(request: BookRequestV1, response: Response):
 	# check if the user has already booked a place
 	order_note = await ddr1.find_by_params(user_id=user_id, event_id=request.event_id, collection='order')
 
+	# acquire event related information
+	event_note = await ddr1.find_by_id(id=request.event_id, collection='event')
+
 	# do not let the user book a place
 	# if they have already done that
 	if len(order_note) != 0:
@@ -209,7 +213,10 @@ async def book_place_handler_v1(request: BookRequestV1, response: Response):
 	elif len(another_order_note) != 0:
 		return Response(content='Not Acceptable', status_code=406)
 	else:
-		await ddr1.insert({'user_id': user_id, 'event_id': request.event_id, 'place_id': request.place_id}, 'order')
+		await ddr1.insert({'user_id': user_id, 'event_id': request.event_id, 'place_id': request.place_id, 'timestamp': datetime.timestamp(datetime.utcnow().replace(tzinfo=timezone.utc))}, 'order')
+
+		# send a booking notification to the email
+		email1.send_booking_info(user_id, f'- Event:\n {event_note.get("title", "_")}\n\n- Seat:\n(location - section - row - seat)\n{place_id.replace("_", " - ")}\n\n- About:\n{event_note.get("description", "_")}')
 
 		return 'OK'
 
@@ -240,7 +247,7 @@ async def fetch_host_handler_v1(name: str, response: Response):
 		return host[0]
 	
 # fetch taken seats 
-async def fetch_taken_seats_v1(event_id: str, response: Response):
+async def fetch_taken_seats_handler_v1(event_id: str, response: Response):
 	orders = await ddr1.find_by_params(event_id=event_id, collection='order')
 
 	ret = []
@@ -248,3 +255,21 @@ async def fetch_taken_seats_v1(event_id: str, response: Response):
 		ret.append(i.get('place_id', None))
 
 	return list(filter(lambda x: x != None, ret))
+
+# validate payload
+async def validate_payload_handler_v1(hashed_payload: str, payload: Request, response: Response):
+	try:
+		validatable_payload = validate_token(hashed_payload)
+
+		if validatable_payload == loads(await payload.body()):
+			return validatable_payload
+		else:
+			return Response(content='Forbidden', status_code=403)
+	except Exception as e:
+		return Response(content='Forbidden', status_code=403)
+
+# wipe all datapoints by field
+async def remove_by_field_handler_v1(collection: str, field: str, value: str):
+	await ddr1.remove_by_params(collection=collection, **{field: value})
+	
+	return 'OK'

@@ -3,6 +3,9 @@ from datetime import timezone
 import datetime
 import pymongo
 from bson import ObjectId
+import pandas as pd
+from pandas import DataFrame, ExcelWriter
+import jwt
 
 
 # intialize configuration file
@@ -12,7 +15,24 @@ config = Config
 # format the timestamp date object
 def convert_timestamp(timestamp):
 	date_object = datetime.datetime.utcfromtimestamp(timestamp)
-	return date_object.strftime("%Y-%m-%d %H:%M:%S")
+	return date_object.strftime('%Y-%m-%d %H:%M:%S')
+
+
+# define token generator
+def generate_token(**kargs):
+	payload = {
+		'iss': config.TOKEN_ISSUER,
+		'data': {
+		}
+	}
+
+	# build up a payload
+	for key, value in kargs.items():
+		payload['data'].update({key: value})
+
+	# generate the JWT token
+	token = jwt.encode(payload, config.TOKEN_SECRET_KEY, algorithm='HS256')
+	return token
 
 
 # define MongoDB driver functionality (copy-pasted from backend)
@@ -24,7 +44,7 @@ class DBDriverV1:
 
 		if id != None:
 			object_id = ObjectId(id)
-			ret = coll.find_one({'_id': object_id, 'active': {'$ne': False}})
+			ret = coll.find_one({'_id': object_id})
 
 			if ret != None:
 				ret['_id'] = str(ret['_id'])
@@ -79,3 +99,34 @@ class DBDriverV1:
 		object_id = ObjectId(id)
 
 		coll.delete_one({'_id': object_id})
+
+	@staticmethod
+	def remove_by_params(collection: str, **params):
+		client = pymongo.MongoClient(config.MONGO_DSN)
+		coll = client[config.DB_NAME][collection]
+
+		coll.delete_many(params)
+
+
+# define functions to convert mongo db data to xlsx
+def fetch_seats_xlsx(event_id: str):
+	client = pymongo.MongoClient(config.MONGO_DSN)
+	coll = client[config.DB_NAME]['order']
+	event = DBDriverV1.find('event', id=event_id)
+
+	fields = {'user_id': 1, 'place_id': 1, 'timestamp': 1, '_id': 0}
+
+	data_list = []
+	for document in coll.find({'event_id': event_id}, projection=fields):
+		data_list.append(document)
+
+	df = DataFrame(data_list)
+
+	df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
+	df['place_id'] = event.get('host', 'Main hall') + '_' + df['place_id']
+
+	writer = ExcelWriter(config.TEMP_DIR + 'seats_data.xlsx', engine='xlsxwriter')
+	df.to_excel(writer, sheet_name='seats', index=True)
+	writer.close()
+
+	return config.TEMP_DIR + 'seats_data.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

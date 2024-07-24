@@ -8,7 +8,7 @@ import logo from '../../logo.svg'
 import axios from 'axios'
 
 
-function Queues() {
+function Booked() {
 	const [queues, setEvents] = useState([])
 	const [token, setToken] = useState(-1)
 	const [timer, setTimer] = useState(0)
@@ -77,4 +77,4 @@ function Queues() {
 	)
 }
 
-export default Queues
+export default Booked

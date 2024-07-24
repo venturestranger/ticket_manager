@@ -15,15 +15,19 @@ function Events() {
 	const [systemMessage, setSystemMessage] = useState(undefined)
 	const navigate = useNavigate()
 
+	const callAlert = (msg, level) => {
+		localStorage.setItem('msg', msg)
+		localStorage.setItem('level', level)
+		navigate('/info')
+	}
+
 	useEffect(() => {
 		axios.get(`${apiUrl}/event?limit=1000000`, { headers: apiHeaders })
 		.then(resp => {
 			setEvents(resp.data)
 		})
 		.catch(err => {
-			localStorage.setItem('msg', `${err.response.status}. Something went wrong. Contact the administrator.`)
-			localStorage.setItem('level', 'error')
-			navigate('/info')
+			callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
 		})
 	}, [])
 
@@ -42,21 +46,13 @@ function Events() {
 		})
 		.catch(err => {
 			if (err.response.status == 401) {
-				localStorage.setItem('msg', '403. Your site session has expired. Reload the page.')
-				localStorage.setItem('level', 'error')
-				navigate('/info')
+				callAlert('403. Your site session has expired. Reload the page.', 'error')
 			} else if (err.response.status == 403) {
-				localStorage.setItem('msg', '403. Authorize using "Log In" button below.')
-				localStorage.setItem('level', 'error')
-				navigate('/info')
+				callAlert('403. Authorize using "Log In" button below.', 'error')
 			} else if (err.response.status == 409) {
-				localStorage.setItem('msg', '409. You have either already registered in the queue or booked a seat.')
-				localStorage.setItem('level', 'error')
-				navigate('/info')
+				callAlert('409. You have either already registered in the queue or booked a seat.', 'error')
 			} else {
-				localStorage.setItem('msg', `${err.response.status}. Something went wrong. Contact the administrator.`)
-				localStorage.setItem('level', 'error')
-				navigate('/info')
+				callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
 			}
 		})
 	}

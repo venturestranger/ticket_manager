@@ -11,11 +11,15 @@ class Config:
 	TOKEN_SECRET_KEY = 'some secret key'
 	TOKEN_ISSUER = 'some issuer'
 	TOKEN_EXPIRATION = 3600
-	TOKEN_SECRET_KEY = 'some token secret key'
 	AUTH_SKIP = True
 	INFINITE_COOKIE_EXPIRATION = 100000000
 	COOKIE_EXPIRATION = 36000
 	COOKIE_SECURE = False
+	EMAIL_LOGIN = ''
+	EMAIL_PASSWORD = ''
+	EMAIL_SUBJECT = 'Regarding seat booking for an upcoming event'
+	EMAIL_BOOKING_MESSAGE_TEMPLATE = "You have successfully booked a seat for an upcoming event.\n\nHere's everything you need to know about getting an event pass:\n\n"
+	DAILY_QUEUE_TIMESPAN = [5, 17] # from 5:00 GMT to 17:00 GMT
 
 
 # define development config
