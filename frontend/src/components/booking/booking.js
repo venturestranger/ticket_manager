@@ -135,6 +135,7 @@ function Booking() {
 	const takeSeat = () => {
 		if (selectedSeat == undefined) {
 			setSystemMessage('Choose any free seat.')
+			setSystemMessageStatus('warning')
 		} else if (takenSeats.includes(selectedSeat) == false) {
 			axios.post(`${apiUrl}/book_place`, { event_id: event_id, user_id: user_id, place_id: selectedSeat }, { headers: apiHeaders })
 			.then(resp => {
@@ -149,13 +150,15 @@ function Booking() {
 				} else if (err.response.status == 409) {
 					callAlert('409. You have already booked a seat for this event. You cannot rebook a seat.', 'error')
 				} else if (err.response.status == 406) {
-					setSystemMessage('The seat is already taken.')
+					setSystemMessage('The chosen seat is already taken.')
+					setSystemMessageStatus('warning')
 				} else {
 					callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
 				}
 			})
 		} else {
-			setSystemMessage('The chosen seat is alredy taken')
+			setSystemMessage('The chosen seat is alredy taken.')
+			setSystemMessageStatus('warning')
 		}
 	}
 
