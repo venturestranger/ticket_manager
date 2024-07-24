@@ -204,7 +204,7 @@ async def book_place_handler_v1(request: BookRequestV1, response: Response):
 	order_note = await ddr1.find_by_params(user_id=user_id, event_id=request.event_id, collection='order')
 
 	# acquire event related information
-	event_note = await ddr1.find_by_id(id=request.event_id, collection='event')
+	event_note = await ddr1.find(id=request.event_id, collection='event')
 
 	# do not let the user book a place
 	# if they have already done that
@@ -215,17 +215,28 @@ async def book_place_handler_v1(request: BookRequestV1, response: Response):
 	else:
 		await ddr1.insert({'user_id': user_id, 'event_id': request.event_id, 'place_id': request.place_id, 'timestamp': datetime.timestamp(datetime.utcnow().replace(tzinfo=timezone.utc))}, 'order')
 
+		place_id = request.place_id.split('_')
+		for i in range(len(place_id)):
+			if place_id[i].isdigit():
+				place_id[i] = str(int(place_id[i]) + 1)
+		place_id = ' - '.join(place_id)
+
 		# send a booking notification to the email
-		email1.send_booking_info(user_id, f'- Event:\n {event_note.get("title", "_")}\n\n- Seat:\n(location - section - row - seat)\n{place_id.replace("_", " - ")}\n\n- About:\n{event_note.get("description", "_")}')
+		email1.send_booking_info(user_id, f'- Event:\n {event_note.get("title", "_")}\n\n- Seat:\n(location - floor - section - row - seat)\n{place_id}\n\n- About:\n{event_note.get("description", "_")}')
 
 		return 'OK'
 
 # initialize session
 async def init_session_handler_v1(request: InitSessionRequestV1, response: Response):
 	mail = request.mail
-	token = generate_token(mail=mail)
 
-	return { 'user_id': token }
+	if mail.endswith(config.EMAIL_DOMAIN) == True:
+		token = generate_token(mail=mail)
+
+		return { 'user_id': token }
+	else:
+		return Response(content='Forbidden', status_code=403)
+		
 
 # list queues 
 async def list_queues_handler_v1(user_id: str, response: Response):

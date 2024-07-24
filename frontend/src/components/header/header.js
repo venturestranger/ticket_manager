@@ -1,14 +1,11 @@
 import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays } from '../../config.js'
-import { Link } from 'react-router-dom';
 import axios from 'axios'
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { useNavigate, useLocation } from 'react-router-dom'
 import { jwtDecode } from 'jwt-decode'
-import eventsMenuIcon from '../../media/eventsMenuIcon.svg';
-import queuesMenuIcon from '../../media/queuesMenuIcon.svg';
 
 
-function Navbar() {
+function Header() {
 	const navigate = useNavigate()
 	const location = useLocation();
 
@@ -38,17 +35,27 @@ function Navbar() {
 	}
 
 	return (
-		<nav className='navbar fixed-bottom navbar-expand-sm navbar-light bg-light d-flex justify-content-around pt-3'>
-			<Link className='nav-link text-black d-flex flex-column align-items-center' to='/'>
-				<img style={{opacity: location.pathname == '/' ? 1 : 0.4, width: '30px'}} src={eventsMenuIcon}/>
-				<p style={{opacity: location.pathname == '/' ? 1 : 0.4, height: '10px'}}>Events</p>
-			</Link>
-			<Link className='nav-link text-black d-flex flex-column align-items-center' to='/queues'>
-				<img style={{opacity: location.pathname == '/queues' ? 1 : 0.4, width: '30px'}} src={queuesMenuIcon}/>
-				<p style={{opacity: location.pathname == '/queues' ? 1 : 0.4, height: '10px'}}>Queues</p>
-			</Link>
-		</nav>
+		<div class='fixed-top container pt-2 pb-2 rounded-bottom d-flex justify-content-end bg-light'>
+		<GoogleOAuthProvider clientId='603878420078-g9ak0nsf757penkli6t0pb7v9ut92gle.apps.googleusercontent.com'>
+			<GoogleLogin
+				buttonText=''
+				onSuccess={credentialResponse => {
+					const credentials = jwtDecode(credentialResponse.credential)
+					localStorage.removeItem('user_id')
+
+					if (credentials.email.endsWith('@nu.edu.kz') == true) {
+						logIn(credentials.email)
+					} else {
+						callAlert('403. Use your NU email.', 'error')
+					}
+				}}
+				onError={() => {
+					callAlert(`Something went wrong. Contact the administrator.`, 'error')
+				}}
+			/>
+		</GoogleOAuthProvider>
+		</div>
 	)
 }
 
-export default Navbar
+export default Header

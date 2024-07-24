@@ -80,7 +80,7 @@ def validate_token(token):
 		
 		if payload['iss'] != config.TOKEN_ISSUER:
 			return -1
-	except:
+	except Exception:
 		raise Exception('Invalid token')
 	else:
 		return payload['data']

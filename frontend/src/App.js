@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays } from './config.js'
 import { formatTime } from './utils.js'
 import Events from './components/events/events.js'
+import Header from './components/header/header.js'
+import Navbar from './components/navbar/navbar.js'
 import Queues from './components/queues/queues.js'
 import Booking from './components/booking/booking.js'
 import Prebooking from './components/prebooking/prebooking.js'
@@ -16,13 +18,18 @@ import axios from 'axios'
 function App() {
 	return (
 		<BrowserRouter>
+		<Header />
+		
 		<Routes>
 			<Route index path="/" exact element={<Events />} />
 			<Route path="/queues" element={<Queues />} />
 			<Route path="/booking/:event_id/:queue_id" element={<Booking />} />
 			<Route path="/prebooking/:event_id/:hash" element={<Prebooking />} />
 			<Route path="/info" element={<Info />} />
+			<Route path="/info_" element={<Info />} />
 		</Routes>
+
+		<Navbar/>
 		</BrowserRouter>
 	)
 }

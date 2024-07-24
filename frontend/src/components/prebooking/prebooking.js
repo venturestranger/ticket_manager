@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays, bookingRefreshPageTime } from '../../config.js'
 import { useParams, useNavigate } from 'react-router-dom'
 import { formatTime } from '../../utils.js'
-import Navbar from '../../components/navbar/navbar.js'
 import logo from '../../logo.svg'
 import axios from 'axios'
 
@@ -29,8 +28,6 @@ function Prebooking() {
 		// acquire event info
 		axios.get(`${apiUrl}/event?id=${event_id}`, { headers: apiHeaders })
 		.then(resp => {
-			console.log(resp.data.hash, hash, `${apiUrl}/validate_payload?hashed_payload=${hash}`)
-
 			// required to check if only admins have an access
 			axios.post(`${apiUrl}/validate_payload?hashed_payload=${hash}`, { content: resp.data.title }, { header: apiHeaders })
 			.catch(err => {
@@ -42,6 +39,8 @@ function Prebooking() {
 					callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
 				}
 			})
+
+			setHostName(resp.data.host)
 
 			axios.get(`${apiUrl}/fetch_host?name=${resp.data.host}`, { headers: apiHeaders })
 			.then(resp => {
@@ -95,56 +94,72 @@ function Prebooking() {
 	}
 
 	return (
-		<>
-			<div class="container mt-5">
-				<div class="btn-group" role="group" aria-label="Basic example">
+		<div className='container'>
+			<br/>
+
+			<h1 className='mt-5 ms-2'>⊗ Prebooking:</h1>
+
+			<div className='container mt-4 d-flex flex-column justify-content-between'>
+				<p>Floor:</p>
+				<div className='btn-group' role='group'>
 				{
 					Array(host.floors).fill().map((_, index) => (
-						<button onClick={ () => changeFloor(index) } type="button" class={ selectedFloor == index ? "btn btn-primary" : "btn btn-secondary" }>{ index + 1 }</button>
+						<button onClick={ () => changeFloor(index) } type='button' className={ selectedFloor == index ? 'btn btn-primary' : 'btn btn-secondary' }>{ index + 1 }</button>
 					))
 				}
 				</div>
 			</div>
 
-			<div class="container mt-5">
-				<div class="btn-group" role="group" aria-label="Basic example">
+			<div className='container mt-3 d-flex flex-column justify-content-start'>
+				<p>Section:</p>
+				<div>
 				{
 					host.sections[selectedFloor].map((name, index) => (
-						<button onClick={ () => setSelectedPart(name) } type="button" class={ selectedPart == name ? "btn btn-primary" : "btn btn-secondary" }>{ name }</button>
+						<button onClick={ () => setSelectedPart(name) } type='button' className={ selectedPart == name ? 'btn btn-primary me-1' : 'btn btn-secondary  me-1' }>{ name }</button>
 					))
 				}
 				</div>
 			</div>
 
-			<div class="container mt-5">
+			<br/>
+			<hr/>
+
+			<div className='container mt-4 d-flex flex-column'>
+				<p>Seats:</p>
 			{
 				host[`map_${selectedFloor}_${selectedPart}`].map((seats, row) => (
 					<>
-						<div class="btn-group" role="group" aria-label="Basic example">
+						<div className='btn-group' role='group'>
 						{
 							Array(seats).fill().map((_, col) => (
-								<button onClick={ () => {
-									if (takenSeats.has(`seat_${selectedFloor}_${selectedPart}_${row}_${col}`) == false) {
-										setTakenSeats(prv => new Set([...prv, `seat_${selectedFloor}_${selectedPart}_${row}_${col}`])) 
+								<button style={{ fontSize: 10, padding: 3 }} onClick={ () => {
+									if (takenSeats.has(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) == false) {
+										setTakenSeats(prv => new Set([...prv, `${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`])) 
 									} else {
 										const newSeats = new Set([...takenSeats])
-										newSeats.delete(`seat_${selectedFloor}_${selectedPart}_${row}_${col}`)
+										newSeats.delete(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`)
 										setTakenSeats(newSeats) 
 									}
-								}} type="button" class={ takenSeats.has(`seat_${selectedFloor}_${selectedPart}_${row}_${col}`) ? "btn btn-dark" : "btn btn-secondary" }>{ takenSeats.has(`seat_${selectedFloor}_${selectedPart}_${row}_${col}`) ? "x" : "_" }</button>
+								}} type='button' className={ (takenSeats.has(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) ? 'btn btn-primary' : 'btn btn-secondary') + ' border' }>{ takenSeats.has(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) ? 'x' : '_' }</button>
 							))
 						}
 						</div>
-						<br/>
 					</>
 				))
 			}
+
+			<p className='mt-2'>Stage ↓</p>
 			</div>
 
-			<button onClick={ prebookSeats }> Save </button>
-			
-			<Navbar/>
-		</>
+			<div className='container'>
+				<button style={{width: '100%', fontSize: 22}} className='mt-4 mb-5 btn btn-danger' onClick={ prebookSeats }> Prebook </button>
+			</div>
+
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+		</div>
 	)
 }
 

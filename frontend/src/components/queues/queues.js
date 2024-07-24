@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays, queuesRefreshPageTime } from '../../config.js'
 import { useNavigate } from 'react-router-dom'
 import { formatTime } from '../../utils.js'
-import Navbar from '../../components/navbar/navbar.js'
 import Cookies from 'js-cookie'
 import logo from '../../logo.svg'
 import axios from 'axios'
@@ -12,7 +11,7 @@ function Queues() {
 	const [queues, setEvents] = useState([])
 	const [token, setToken] = useState(-1)
 	const [timer, setTimer] = useState(0)
-	const user_id = Cookies.get('user_id')
+	const user_id = localStorage.getItem('user_id')
 	const navigate = useNavigate()
 
 	const callAlert = (msg, level) => {
@@ -35,7 +34,7 @@ function Queues() {
 			if (err.response.status == 401) {
 				callAlert('403. Your site session has expired. Reload the page.', 'error')
 			} else if (err.response.status == 403) {
-				callAlert('403. You are unauthorized or your login session has expired. Authorize using "Log In" button below.', 'error')
+				callAlert("403. Authorize using 'Google Sign In' button above. Please select your NU account.", 'error')
 			} else {
 				callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
 			}
@@ -51,18 +50,20 @@ function Queues() {
 	}
 
 	return (
-		<div className="App">
-			<h1 className='mt-3'> Events: </h1>
+		<div className='container'>
+			<br/>
+
+			<h1 className='mt-5 ms-2 mb-3'>☰ Queues:</h1>
 	
-			<div className="container mt-3 mb-4">
-				<div className="column">
+			<div className='container mt-4 mb-5'>
+				<div className='column'>
 					{	
 					queues.map((item, index) => 
-						<div key={ index } className="col p-4 mb-4 bg-primary">
+						<div key={ index } className='border border-black rounded col bg-white mb-3 p-3 shadow' >
 							<h2>{ item.title }</h2>
-							<h3>{ formatTime(item.queue_start) }</h3>
-							<h3>{ formatTime(item.queue_finish) }</h3>
-							<button disabled={ !(Date.now() / 1000 < item.queue_finish && Date.now() / 1000 > item.queue_start) } onClick={ () => bookPlace(item) }> Book </button>
+							<hr/>
+							<p>→ You will get an access to book a seat from <b>{ formatTime(item.queue_start) }</b> until <b>{ formatTime(item.queue_finish) }</b><br/>(your device time)</p>
+							<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ !(Date.now() / 1000 < item.queue_finish && Date.now() / 1000 > item.queue_start) } onClick={ () => bookPlace(item) }>Book a seat</button>
 						</div>
 					)
 					}
@@ -71,8 +72,6 @@ function Queues() {
 
 			<br/>
 			<br/>
-
-			<Navbar/>
 		</div>
 	)
 }

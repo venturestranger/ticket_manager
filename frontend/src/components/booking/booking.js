@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays, bookingRefreshPageTime } from '../../config.js'
 import { useParams, useNavigate } from 'react-router-dom'
 import { formatTime } from '../../utils.js'
-import Navbar from '../../components/navbar/navbar.js'
 import Cookies from 'js-cookie'
 import logo from '../../logo.svg'
 import axios from 'axios'
@@ -20,7 +19,8 @@ function Booking() {
 	const [takenSeats, setTakenSeats] = useState([])
 	const [timer, setTimer] = useState(0)
 	const [systemMessage, setSystemMessage] = useState(undefined)
-	const user_id = Cookies.get('user_id')
+	const [systemMessageStatus, setSystemMessageStatus] = useState(undefined)
+	const user_id = localStorage.getItem('user_id')
 	const { event_id, queue_id } = useParams()
 	const queue_start = Cookies.get(`${queue_id}$queue_start`)
 	const queue_finish = Cookies.get(`${queue_id}$queue_finish`)
@@ -50,7 +50,7 @@ function Booking() {
 		// check if the user is logged in (cannot access from logged in)
 		if (user_id == undefined) {
 			// render not authorized
-			callAlert('403. Authorize using "Log In" button below.', 'error')
+			callAlert('403. Authorize using "Google Sign In" button above. Please select your NU account.', 'error')
 		}
 
 		// check if the user has properly get in the queue (cannot access without registering in the queue)
@@ -74,6 +74,8 @@ function Booking() {
 		if (hostName == undefined) {
 			axios.get(`${apiUrl}/event?id=${event_id}`, { headers: apiHeaders })
 			.then(resp => {
+				setHostName(resp.data.host)
+
 				axios.get(`${apiUrl}/fetch_host?name=${resp.data.host}`, { headers: apiHeaders })
 				.then(resp => {
 					setHost(resp.data)
@@ -143,7 +145,7 @@ function Booking() {
 				if (err.response.status == 401) {
 					callAlert('401. Your site session has expired. Reload the page.', 'error')
 				} else if (err.response.status == 403) {
-					callAlert('403. Your login session has expired. Reauthorize using the "Log In" button below.', 'error')
+					callAlert('403. Your login session has expired. Reauthorize using the "Google Sign In" button above. Please select your NU account.', 'error')
 				} else if (err.response.status == 409) {
 					callAlert('409. You have already booked a seat for this event. You cannot rebook a seat.', 'error')
 				} else if (err.response.status == 406) {
@@ -158,53 +160,72 @@ function Booking() {
 	}
 
 	return (
-		<>
-			<h1> { systemMessage } </h1>
-			<h1> { timer } </h1>
-			<div class="container mt-5">
-				<div class="btn-group" role="group" aria-label="Basic example">
+		<div className='container'>
+			<br/>
+
+			<h1 className='mt-5 ms-2'>⊗ Booking:</h1>
+			{	
+				systemMessage != undefined &&
+				<div className={`alert alert-${systemMessageStatus} ms-3 me-3`}>
+					<p style={{marginBottom: '0px'}}>{ systemMessage }</p>
+				</div>
+			}
+
+			<div className='container mt-2 d-flex flex-column justify-content-between'>
+				<p> { timer } seconds elapsed </p>
+
+				<p>Floor:</p>
+				<div className='btn-group' role='group'>
 				{
 					Array(host.floors).fill().map((_, index) => (
-						<button onClick={ () => changeFloor(index) } type="button" class={ selectedFloor == index ? "btn btn-primary" : "btn btn-secondary" }>{ index + 1 }</button>
+						<button onClick={ () => changeFloor(index) } type='button' className={ selectedFloor == index ? 'btn btn-primary' : 'btn btn-secondary' }>{ index + 1 }</button>
 					))
 				}
 				</div>
 			</div>
 
-			<div class="container mt-5">
-				<div class="btn-group" role="group" aria-label="Basic example">
+			<div className='container mt-3 d-flex flex-column justify-content-start'>
+				<p>Section:</p>
+				<div>
 				{
 					host.sections[selectedFloor].map((name, index) => (
-						<button onClick={ () => setSelectedPart(name) } type="button" class={ selectedPart == name ? "btn btn-primary" : "btn btn-secondary" }>{ name }</button>
+						<button onClick={ () => setSelectedPart(name) } type='button' className={ selectedPart == name ? 'btn btn-primary me-1' : 'btn btn-secondary  me-1' }>{ name }</button>
 					))
 				}
 				</div>
 			</div>
 
-			<div class="container mt-5">
+			<div className='container mt-4 d-flex flex-column'>
+				<p>Seats:</p>
 			{
 				host[`map_${selectedFloor}_${selectedPart}`].map((seats, row) => (
 					<>
-						<div class="btn-group" role="group" aria-label="Basic example">
+						<div className='btn-group' role='group'>
 						{
 							Array(seats).fill().map((_, col) => (
-								<button onClick={ () => {
-									if (takenSeats.includes(`seat_${selectedFloor}_${selectedPart}_${row}_${col}`) == false)
-										setSelectedSeat(`seat_${selectedFloor}_${selectedPart}_${row}_${col}`) 
-								}} type="button" class={ takenSeats.includes(`seat_${selectedFloor}_${selectedPart}_${row}_${col}`) ? "btn btn-dark" : `seat_${selectedFloor}_${selectedPart}_${row}_${col}` == selectedSeat ? "btn btn-primary" : "btn btn-secondary" }>{ takenSeats.includes(`seat_${selectedFloor}_${selectedPart}_${row}_${col}`) ? "x" : `seat_${selectedFloor}_${selectedPart}_${row}_${col}` == selectedSeat ? "o" : "_" }</button>
+								<button style={{ fontSize: 10, padding: 3 }} onClick={ () => {
+									if (takenSeats.includes(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) == false)
+										setSelectedSeat(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) 
+								}} type="button" class={ (takenSeats.includes(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) ? "btn btn-dark" : `${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}` == selectedSeat ? "btn btn-primary" : "btn btn-secondary") + ' border'}>{ takenSeats.includes(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) ? "x" : `${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}` == selectedSeat ? "o" : "_" }</button>
 							))
 						}
 						</div>
-						<br/>
 					</>
 				))
 			}
+
+			<p className='mt-2'>Stage ↓</p>
 			</div>
 
-			<button onClick={ takeSeat }> Order </button>
-			
-			<Navbar/>
-		</>
+			<div className='container'>
+				<button  style={{width: '100%', fontSize: 22}} className='mt-4 mb-5 btn btn-danger' onClick={ takeSeat }> Book </button>
+			</div>
+
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+		</div>
 	)
 }
 

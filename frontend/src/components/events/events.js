@@ -13,6 +13,7 @@ function Events() {
 	const [expanded, setExpanded] = useState(-1)
 	const [token, setToken] = useState(-1)
 	const [systemMessage, setSystemMessage] = useState(undefined)
+	const [systemMessageStatus, setSystemMessageStatus] = useState(undefined)
 	const navigate = useNavigate()
 
 	const callAlert = (msg, level) => {
@@ -39,18 +40,20 @@ function Events() {
 	}
 
 	const initQueue = (id) => {
-		axios.post(`${apiUrl}/init_queue`, { event_id: id, user_id: Cookies.get('user_id') }, { withCredentials: true, headers: apiHeaders })
+		axios.post(`${apiUrl}/init_queue`, { event_id: id, user_id: localStorage.getItem('user_id') }, { withCredentials: true, headers: apiHeaders })
 		.then(resp => {
 			// console.log(resp.data)
-			setSystemMessage('You have registered in the queue.')
+			setSystemMessage('You have joined the queue.')
+			setSystemMessageStatus('success')
 		})
 		.catch(err => {
 			if (err.response.status == 401) {
-				callAlert('403. Your site session has expired. Reload the page.', 'error')
+				callAlert('401. Your site session has expired. Reload the page.', 'error')
 			} else if (err.response.status == 403) {
-				callAlert('403. Authorize using "Log In" button below.', 'error')
+				callAlert("403. Authorize using 'Google Sign In' button above. Please select your NU account.", 'error')
 			} else if (err.response.status == 409) {
-				callAlert('409. You have either already registered in the queue or booked a seat.', 'error')
+				setSystemMessage('You have either already joined this queue or booked a seat.')
+				setSystemMessageStatus('danger')
 			} else {
 				callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
 			}
@@ -58,26 +61,41 @@ function Events() {
 	}
 
 	return (
-		<div className="App">
-			<h1 className='mt-3'> Events: </h1>
-			<h1> { systemMessage } </h1>
+		<div className='container'>
+			<br/>
+
+			<h1 className='mt-5 ms-2 mb-3'>☰ Events:</h1>
+			
+			{	
+				systemMessage != undefined &&
+				<div className={`alert alert-${systemMessageStatus} ms-3 me-3`}>
+					<p style={{marginBottom: '0px'}}>{ systemMessage }</p>
+				</div>
+			}
 	
-			<div className="container mt-3 mb-4">
-				<div className="column">
+			<div className='container mt-4 mb-5'>
+				<div className='column'>
 					{	
 					events.map((item, index) => 
-						<div key={ index } className="col p-4 mb-4 bg-primary" onClick={ () => expand(index) }>
+						<div key={ index } className='border border-black rounded col bg-white mb-3 p-3 shadow' onClick={ () => expand(index) }>
 							{expanded == index ? (
 								<>
-								<img src={ item.banner_url } />
+								{
+									item.banner_url != '' &&
+									<img style={{width: '100%'}} alt='Banner' className='rounded mb-3' src={ item.banner_url } />
+								}
 								<h2>{ item.title }</h2>
 								<p>{ item.description }</p>
-								<p>Registration opens on { formatTime(item.registration_start_time) }</p>
-								<p>Registration closes on { formatTime(item.queue_start_time) }</p>
-								<button disabled={ !(Date.now() / 1000 < item.queue_start_time && Date.now() / 1000 > item.registration_start_time) } onClick={ () => initQueue(item._id) }> Take queue </button>
+								<hr/>
+								<p>→ Registration opens on <b>{ formatTime(item.registration_start_time) }</b></p>
+								<p>→ Registration closes on <b>{ formatTime(item.queue_start_time) }</b></p>
+								<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ !(Date.now() / 1000 < item.queue_start_time && Date.now() / 1000 > item.registration_start_time) } onClick={ () => initQueue(item._id) }>Join queue</button>
 								</>
 							) :
-								<h2>{ item.title }</h2>
+								<>
+								<h4>{ item.title }</h4>
+								<p>Tap to see more ↓</p>
+								</>
 							}
 						</div>
 					)
@@ -87,8 +105,6 @@ function Events() {
 
 			<br/>
 			<br/>
-
-			<Navbar/>
 		</div>
 	)
 }

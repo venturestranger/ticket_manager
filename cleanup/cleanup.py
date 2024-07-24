@@ -17,4 +17,4 @@ if __name__ == '__main__':
 	while True:
 		sleep(Config.CLEANUP_SLEEP)
 		remove_expired_queues()
-		print(datetime.utcnow(), 'Cleanup completed')
+		print(datetime.utcnow(), '- Cleanup completed')

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays, queuesRefreshPageTime } from '../../config.js'
 import { useNavigate } from 'react-router-dom'
 import { formatTime } from '../../utils.js'
-import Navbar from '../../components/navbar/navbar.js'
 import Cookies from 'js-cookie'
 import logo from '../../logo.svg'
 import axios from 'axios'
@@ -35,7 +34,7 @@ function Booked() {
 			if (err.response.status == 401) {
 				callAlert('403. Your site session has expired. Reload the page.', 'error')
 			} else if (err.response.status == 403) {
-				callAlert('403. You are unauthorized or your login session has expired. Authorize using "Log In" button below.', 'error')
+				callAlert('403. You are unauthorized or your login session has expired. Authorize using "Google Sign In" button above.', 'error')
 			} else {
 				callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
 			}
@@ -71,8 +70,6 @@ function Booked() {
 
 			<br/>
 			<br/>
-
-			<Navbar/>
 		</div>
 	)
 }

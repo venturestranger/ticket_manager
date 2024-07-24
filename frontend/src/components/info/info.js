@@ -1,26 +1,31 @@
 import { useState, useEffect } from 'react'
 import { apiUrl, apiToken, apiHeaders } from '../../config.js'
-import Navbar from '../../components/navbar/navbar.js'
 
 
 function Events() {
 	// levels: success, info, warning, error
 	const level = localStorage.getItem('level', 'info')
 	const msg = localStorage.getItem('msg', '')
+	let modifier = ''
+
+	if (level == 'error') {
+		modifier = 'danger'
+	} else if (level == 'success') {
+		modifier = 'success'
+	} else if (level == 'info') {
+		modifier = 'info'
+	} else if (level == 'warning') {
+		modifier = 'warning'
+	}
 
 	return (
-		<div className="App">
-			{ level == 'success' ?
-				<h1 className='mt-3'> { msg } </h1>
-			: level == 'info' ?
-				<h1 className='mt-3'> { msg } </h1>
-			: level == 'warning' ? 
-				<h1 className='mt-3'> { msg } </h1>
-			: 
-				<h1 className='mt-3'> { msg } </h1>
-			}
+		<div className='container'>
+			<br/>
+			<br/>
 
-			<Navbar/>
+			<div className={ `mt-5 rounded mb-3 p-3 alert alert-${modifier}` }>
+				<p className='mt-3'>{ msg }</p>
+			</div>
 		</div>
 	)
 }
