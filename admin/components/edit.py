@@ -124,6 +124,7 @@ def edit_tool_v1(id):
 
 	if save == True and confirm == True:
 		ddr1.update_by_id(id=id, collection='event', note={'title': title, 'description': description, 'banner_url': banner_url, 'queue_start_time': queue_start_time.timestamp(), 'queue_finish_time': queue_finish_time.timestamp(), 'queue_duration': queue_duration, 'queue_batch_size': queue_batch_size, 'registration_start_time': registration_start_time.timestamp(), 'host': host, 'active': active, 'hash': generate_token(content=title)})
+		ddr1.reset_by_ref_id(id, 'position', 'queue_counter', 1)
 		return 1
 	elif cancel == True:
 		return 0

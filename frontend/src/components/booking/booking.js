@@ -16,14 +16,14 @@ function Booking() {
 	const [floorButtons, setFloorButtons] = useState([])
 	const [sectionsButtons, setSectionButtons] = useState([])
 	const [seatButtons, setSeatButtons] = useState([])
-	const [takenSeats, setTakenSeats] = useState([])
+	const [takenSeats, setTakenSeats] = useState({})
 	const [timer, setTimer] = useState(0)
 	const [systemMessage, setSystemMessage] = useState(undefined)
 	const [systemMessageStatus, setSystemMessageStatus] = useState(undefined)
 	const user_id = localStorage.getItem('user_id')
 	const { event_id, queue_id } = useParams()
-	const queue_start = Cookies.get(`${queue_id}$queue_start`)
-	const queue_finish = Cookies.get(`${queue_id}$queue_finish`)
+	const queue_start = Number(Cookies.get(`${queue_id}$queue_start`))
+	const queue_finish = Number(Cookies.get(`${queue_id}$queue_finish`))
 	const navigate = useNavigate()
 
 	const revokeQeueueCookies = () => {
@@ -116,7 +116,6 @@ function Booking() {
 		axios.get(`${apiUrl}/fetch_taken_seats?event_id=${event_id}`, { headers: apiHeaders })
 		.then(resp => {
 			// console.log(resp.data)
-
 			setTakenSeats(resp.data)
 		})
 		.catch(err => {
@@ -136,7 +135,7 @@ function Booking() {
 		if (selectedSeat == undefined) {
 			setSystemMessage('Choose any free seat.')
 			setSystemMessageStatus('warning')
-		} else if (takenSeats.includes(selectedSeat) == false) {
+		} else if (takenSeats.hasOwnProperty(selectedSeat) == false) {
 			axios.post(`${apiUrl}/book_place`, { event_id: event_id, user_id: user_id, place_id: selectedSeat }, { headers: apiHeaders })
 			.then(resp => {
 				removeFromQueue()
@@ -157,7 +156,7 @@ function Booking() {
 				}
 			})
 		} else {
-			setSystemMessage('The chosen seat is alredy taken.')
+			setSystemMessage('The chosen seat is already taken.')
 			setSystemMessageStatus('warning')
 		}
 	}
@@ -207,9 +206,9 @@ function Booking() {
 						{
 							Array(seats).fill().map((_, col) => (
 								<button style={{ fontSize: 10, padding: 3 }} onClick={ () => {
-									if (takenSeats.includes(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) == false)
+									if (takenSeats.hasOwnProperty(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) == false)
 										setSelectedSeat(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) 
-								}} type="button" class={ (takenSeats.includes(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) ? "btn btn-dark" : `${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}` == selectedSeat ? "btn btn-primary" : "btn btn-secondary") + ' border'}>{ takenSeats.includes(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) ? "x" : `${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}` == selectedSeat ? "o" : "_" }</button>
+								}} type="button" class={ (takenSeats.hasOwnProperty(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) ? "btn btn-dark" : `${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}` == selectedSeat ? "btn btn-primary" : "btn btn-secondary") + ' border'}>{ takenSeats.hasOwnProperty(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) ? "x" : `${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}` == selectedSeat ? "o" : "_" }</button>
 							))
 						}
 						</div>

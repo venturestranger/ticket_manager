@@ -185,6 +185,15 @@ async def init_queue_handler_v1(request: InitQueueRequestV1, response: Response)
 		queue_start = queue_start_time + queue_position // queue_batch_size * queue_duration
 		queue_finish = queue_start + queue_duration
 
+		current_moment = datetime.utcnow().replace(tzinfo=timezone.utc)
+		# check if now > queue_start
+		if datetime.timestamp(current_moment) >= queue_start:
+			queue_start = datetime.timestamp(current_moment + timedelta(seconds=queue_duration))
+			queue_finish = queue_start + queue_duration
+
+			await ddr1.update_by_id(event.get('_id'), {'queue_start_time': queue_start}, 'queue')
+			await ddr1.reset_by_ref_id(request.event_id, 'position', 'queue_counter', 1)
+
 		await ddr1.insert({'user_id': user_id, 'event_id': request.event_id,'queue_start': queue_start, 'queue_finish': queue_finish, 'title': event.get('title', None)}, 'queue')
 
 		return 'OK'
@@ -236,7 +245,6 @@ async def init_session_handler_v1(request: InitSessionRequestV1, response: Respo
 		return { 'user_id': token }
 	else:
 		return Response(content='Forbidden', status_code=403)
-		
 
 # list queues 
 async def list_queues_handler_v1(user_id: str, response: Response):
@@ -261,11 +269,12 @@ async def fetch_host_handler_v1(name: str, response: Response):
 async def fetch_taken_seats_handler_v1(event_id: str, response: Response):
 	orders = await ddr1.find_by_params(event_id=event_id, collection='order')
 
-	ret = []
+	ret = {}
 	for i in orders:
-		ret.append(i.get('place_id', None))
+		if i.get('place_id', None) != None and i.get('user_id', None) != None:
+			ret.update({i.get('place_id', None): [i.get('user_id', None), i.get('timestamp', None)]})
 
-	return list(filter(lambda x: x != None, ret))
+	return ret
 
 # validate payload
 async def validate_payload_handler_v1(hashed_payload: str, payload: Request, response: Response):

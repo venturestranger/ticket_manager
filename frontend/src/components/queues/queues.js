@@ -44,8 +44,8 @@ function Queues() {
 	}, [timer])
 
 	const bookPlace = (queue) => {
-		Cookies.set(`${queue._id}$queue_start`, queue.start_time, { expires: cookiesExpirationDays })
-		Cookies.set(`${queue._id}$queue_finish`, queue.start_finish, { expires: cookiesExpirationDays })
+		Cookies.set(`${queue._id}$queue_start`, queue.queue_start, { expires: cookiesExpirationDays })
+		Cookies.set(`${queue._id}$queue_finish`, queue.queue_finish, { expires: cookiesExpirationDays })
 		navigate(`/booking/${queue.event_id}/${queue._id}`)
 	}
 

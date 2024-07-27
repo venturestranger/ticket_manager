@@ -107,6 +107,15 @@ class DBDriverV1:
 
 		coll.delete_many(params)
 
+	@staticmethod
+	async def reset_by_ref_id(ref_id: str, counter:str, collection: str, value):
+		client = pymongo.MongoClient(config.MONGO_DSN)
+		coll = client[config.DB_NAME][collection]
+		
+		doc = coll.find_one_and_update({'ref_id': ref_id}, {'$set': {counter: value}}, upsert=True, new=True)
+
+		return doc
+
 
 # define functions to convert mongo db data to xlsx
 def fetch_seats_xlsx(event_id: str):
@@ -123,7 +132,7 @@ def fetch_seats_xlsx(event_id: str):
 	df = DataFrame(data_list)
 
 	df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
-	df['place_id'] = event.get('host', 'Main hall') + '_' + df['place_id']
+	df['place_id'] = df['place_id']
 
 	writer = ExcelWriter(config.TEMP_DIR + 'seats_data.xlsx', engine='xlsxwriter')
 	df.to_excel(writer, sheet_name='seats', index=True)

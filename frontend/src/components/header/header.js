@@ -35,7 +35,7 @@ function Header() {
 	}
 
 	return (
-		<div class='fixed-top container pt-2 pb-2 rounded-bottom d-flex justify-content-end bg-light'>
+		<div className='fixed-top container pt-2 pb-2 rounded-bottom d-flex justify-content-end bg-light'>
 		<GoogleOAuthProvider clientId='603878420078-g9ak0nsf757penkli6t0pb7v9ut92gle.apps.googleusercontent.com'>
 			<GoogleLogin
 				buttonText=''

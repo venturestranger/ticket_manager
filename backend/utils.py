@@ -198,6 +198,15 @@ class DBDriverV1:
 
 		return doc.get(counter, 1)
 
+	@staticmethod
+	async def reset_by_ref_id(ref_id: str, counter:str, collection: str, value):
+		client = AsyncIOMotorClient(config.MONGO_DSN)
+		coll = client[config.DB_NAME][collection]
+		
+		doc = await coll.find_one_and_update({'ref_id': ref_id}, {'$set': {counter: value}}, upsert=True, new=True)
+
+		return doc
+
 
 # define a function to send emails
 class EmailClientV1:

@@ -14,7 +14,7 @@ function Prebooking() {
 	const [floorButtons, setFloorButtons] = useState([])
 	const [sectionsButtons, setSectionButtons] = useState([])
 	const [seatButtons, setSeatButtons] = useState([])
-	const [takenSeats, setTakenSeats] = useState(new Set([]))
+	const [takenSeats, setTakenSeats] = useState({})
 	const { event_id, hash } = useParams()
 	const navigate = useNavigate()
 
@@ -63,7 +63,7 @@ function Prebooking() {
 
 		axios.get(`${apiUrl}/fetch_taken_seats?event_id=${event_id}`, { headers: apiHeaders })
 		.then(resp => {
-			setTakenSeats(new Set(resp.data))
+			setTakenSeats(resp.data)
 		})
 		.catch(err => {
 			callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
@@ -78,12 +78,12 @@ function Prebooking() {
 	const prebookSeats = () => {
 		axios.get(`${apiUrl}/remove_by_field?collection=order&field=event_id&value=${event_id}`, { headers: apiHeaders })
 		.then(resp => {
-			for (const el of takenSeats) {
+			for (const el in takenSeats) {
 				axios.post(`${apiUrl}/order`, {
 					event_id: event_id,
-					user_id: 'admin',
+					user_id: takenSeats[el][0],
 					place_id: el,
-					timestamp: Date.now() / 1000
+					timestamp: takenSeats[el][1] == null ? Date.now() / 1000 : takenSeats[el][1]
 				}, { headers: apiHeaders })
 			}
 		})
@@ -133,14 +133,18 @@ function Prebooking() {
 						{
 							Array(seats).fill().map((_, col) => (
 								<button style={{ fontSize: 10, padding: 3 }} onClick={ () => {
-									if (takenSeats.has(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) == false) {
-										setTakenSeats(prv => new Set([...prv, `${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`])) 
+									if (takenSeats.hasOwnProperty(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) == false) {
+										const buf = {...takenSeats}
+										buf[`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`] = ['admin', Date.now() / 1000]
+
+										setTakenSeats(buf) 
 									} else {
-										const newSeats = new Set([...takenSeats])
-										newSeats.delete(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`)
-										setTakenSeats(newSeats) 
+										const buf = {...takenSeats}
+										delete buf[`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`]
+
+										setTakenSeats(buf) 
 									}
-								}} type='button' className={ (takenSeats.has(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) ? 'btn btn-primary' : 'btn btn-secondary') + ' border' }>{ takenSeats.has(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) ? 'x' : '_' }</button>
+								}} type='button' className={ ( takenSeats[`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`] == undefined ? 'btn btn-secondary' : takenSeats[`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`][0] == 'admin' ? 'btn btn-primary' : 'btn btn-dark') + ' border' }>{ takenSeats.hasOwnProperty(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) ? 'x' : '_' }</button>
 							))
 						}
 						</div>
