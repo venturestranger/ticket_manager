@@ -8,5 +8,6 @@ const apiHeaders = {
 const cookiesExpirationDays = 1
 const bookingRefreshPageTime = 1000
 const queuesRefreshPageTime = 5000
+const googleOAuthId = '603878420078-g9ak0nsf757penkli6t0pb7v9ut92gle.apps.googleusercontent.com'
 
 export { apiUrl, apiToken, apiHeaders, cookiesExpirationDays, bookingRefreshPageTime, queuesRefreshPageTime }

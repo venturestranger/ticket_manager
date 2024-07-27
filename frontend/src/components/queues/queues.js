@@ -34,7 +34,7 @@ function Queues() {
 			if (err.response.status == 401) {
 				callAlert('403. Your site session has expired. Reload the page.', 'error')
 			} else if (err.response.status == 403) {
-				callAlert("403. Authorize using 'Google Sign In' button above. Please select your NU account.", 'error')
+				callAlert("403. Authorize using 'Google Sign In' button above. Please, select your NU account.", 'error')
 			} else {
 				callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
 			}

@@ -17,7 +17,7 @@ class Config:
 	COOKIE_SECURE = False
 	EMAIL_LOGIN = ''
 	EMAIL_PASSWORD = ''
-	EMAIL_SUBJECT = 'Regarding seat booking for an upcoming event'
+	EMAIL_SUBJECT = 'Regarding seat booking'
 	EMAIL_BOOKING_MESSAGE_TEMPLATE = "You have successfully booked a seat for an upcoming event.\n\nHere's everything you need to know about getting an event pass:\n\n"
 	DAILY_QUEUE_TIMESPAN = [5, 17] # from 5:00 GMT to 17:00 GMT
 	EMAIL_DOMAIN = '@nu.edu.kz'

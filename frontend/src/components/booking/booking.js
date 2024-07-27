@@ -50,7 +50,7 @@ function Booking() {
 		// check if the user is logged in (cannot access from logged in)
 		if (user_id == undefined) {
 			// render not authorized
-			callAlert('403. Authorize using "Google Sign In" button above. Please select your NU account.', 'error')
+			callAlert('403. Authorize using "Google Sign In" button above. Please, select your NU account.', 'error')
 		}
 
 		// check if the user has properly get in the queue (cannot access without registering in the queue)
@@ -62,7 +62,7 @@ function Booking() {
 		// check if it is before the interval
 		if (Date.now() / 1000 < queue_start) {
 			// render not ready
-			callAlert('406. An access to this page will be given in awhile.', 'error')
+			callAlert('406. An access to this page will be given soon.', 'error')
 		}
 
 		// check if it is after the interval (remove queue if expired)
@@ -139,13 +139,13 @@ function Booking() {
 			axios.post(`${apiUrl}/book_place`, { event_id: event_id, user_id: user_id, place_id: selectedSeat }, { headers: apiHeaders })
 			.then(resp => {
 				removeFromQueue()
-				callAlert('200. Your have booked a seat. You will receive a verification letter via Email. Show the letter when attending the event.', 'success')
+				callAlert('200. Your have booked a seat. You will receive a verification letter via Email. Show the letter at the event.', 'success')
 			})
 			.catch(err => {
 				if (err.response.status == 401) {
 					callAlert('401. Your site session has expired. Reload the page.', 'error')
 				} else if (err.response.status == 403) {
-					callAlert('403. Your login session has expired. Reauthorize using the "Google Sign In" button above. Please select your NU account.', 'error')
+					callAlert('403. Your login session has expired. Reauthorize using the "Google Sign In" button above. Please, select your NU account.', 'error')
 				} else if (err.response.status == 409) {
 					callAlert('409. You have already booked a seat for this event. You cannot rebook a seat.', 'error')
 				} else if (err.response.status == 406) {

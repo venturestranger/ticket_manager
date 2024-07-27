@@ -1,4 +1,4 @@
-import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays } from '../../config.js'
+import { googleOAuthId, apiUrl, apiToken, apiHeaders, cookiesExpirationDays } from '../../config.js'
 import axios from 'axios'
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -36,7 +36,7 @@ function Header() {
 
 	return (
 		<div className='fixed-top container pt-2 pb-2 rounded-bottom d-flex justify-content-end bg-light'>
-		<GoogleOAuthProvider clientId='603878420078-g9ak0nsf757penkli6t0pb7v9ut92gle.apps.googleusercontent.com'>
+		<GoogleOAuthProvider clientId={ googleOAuthId }>
 			<GoogleLogin
 				buttonText=''
 				onSuccess={credentialResponse => {
