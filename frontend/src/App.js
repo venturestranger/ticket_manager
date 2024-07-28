@@ -20,6 +20,7 @@ function App() {
 		<Header />
 		
 		<Routes>
+			<Route path="*" element={<Events />} />
 			<Route index path="/" exact element={<Events />} />
 			<Route path="/queues" element={<Queues />} />
 			<Route path="/booking/:event_id/:queue_id" element={<Booking />} />

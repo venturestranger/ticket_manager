@@ -65,7 +65,7 @@ def edit_tool_v1(id):
 
 	title = st.text_input('Title:', value=data.get('title', ''))
 	description = st.text_area('Description:', value=data.get('description', ''))
-	host = st.selectbox('Host:', ['Main hall', 'Cinema room'], index=0)
+	host = st.selectbox('Host:', ['Main hall', 'Cinema hall'], index=['Main hall', 'Cinema hall'].index(data.get('host', 'Main hall')))
 	banner_url = st.text_input('Banner URL:', value=data.get('banner_url', ''))
 	active = st.toggle('Event is active', value=data.get('active', False))
 

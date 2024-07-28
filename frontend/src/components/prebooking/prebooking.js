@@ -29,18 +29,9 @@ function Prebooking() {
 		axios.get(`${apiUrl}/event?id=${event_id}`, { headers: apiHeaders })
 		.then(resp => {
 			// required to check if only admins have an access
-			axios.post(`${apiUrl}/validate_payload?hashed_payload=${hash}`, { content: resp.data.title }, { header: apiHeaders })
-			.then(resp => {
-			})
-			.catch(err => {
-				if (err.response.status == 401) {
-					callAlert('401. Your site session has expired. Reload the page.', 'error')
-				} else if (err.response.status == 403) {
-					callAlert('403. The access can be acquired only by admins.', 'error')
-				} else {
-					callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
-				}
-			})
+			if (resp.data.hash != hash) {
+				callAlert('403. The access can be acquired only by admins.', 'error')
+			}
 
 			setHostName(resp.data.host)
 

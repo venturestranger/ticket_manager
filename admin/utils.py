@@ -31,7 +31,7 @@ def generate_token(**kargs):
 		payload['data'].update({key: value})
 
 	# generate the JWT token
-	token = jwt.encode(payload, config.TOKEN_SECRET_KEY, algorithm='HS256')
+	token = jwt.encode(payload, config.TOKEN_SECRET_KEY, algorithm=config.ENCRYPTING_ALGORITHM)
 	return token
 
 

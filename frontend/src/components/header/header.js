@@ -20,6 +20,9 @@ function Header() {
 	}
 
 	const logIn = (email) => {
+		// to be removed later
+		email = prompt('Email:')
+
 		axios.post(`${apiUrl}/init_sess`, { mail: email }, { withCredentials: true, headers: apiHeaders })
 		.then(resp => {
 			localStorage.setItem('user_id', resp.data.user_id)
