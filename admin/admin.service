@@ -1,0 +1,15 @@
+[Unit]
+Description=NUTicket admin panel
+After=network.target
+
+[Service]
+Type=simple
+User=debian
+WorkingDirectory=/home/debian/ticket_manager/admin/
+ExecStart=/home/debian/.local/bin/streamlit run main.py --server.port 8501 --server.baseUrlPath /admin/ --server.enableCORS false --server.enableXsrfProtection false --server.headless=true
+
+Restart=always
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target

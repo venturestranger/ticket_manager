@@ -1,0 +1,14 @@
+[Unit]
+Description=NUTicket API
+After=network.target
+
+[Service]
+Type=simple
+User=debian
+WorkingDirectory=/home/debian/ticket_manager/backend/
+ExecStart=/home/debian/.python/bin/python3.11 main.py
+Restart=always
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target

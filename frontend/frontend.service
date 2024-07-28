@@ -1,0 +1,14 @@
+[Unit]
+Description=NUTicket client
+After=network.target
+
+[Service]
+Type=simple
+User=debian
+WorkingDirectory=/home/debian/ticket_manager/frontend/
+ExecStart=/usr/bin/npm start
+Restart=always
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=NUTicket cleanup daemon
+After=network.target
+
+[Service]
+Type=simple
+User=debian
+WorkingDirectory=/home/debian/ticket_manager/cleanup/
+ExecStart=/home/debian/.python/bin/python3.11 main.py
+Restart=always
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target
