@@ -1,0 +1,14 @@
+[Unit]
+Description=NUTicket client (production | for build)
+After=network.target
+
+[Service]
+Type=simple
+User=debian
+WorkingDirectory=/home/debian/ticket_manager/frontend/build/
+ExecStart=/usr/local/bin/serve
+Restart=always
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target
