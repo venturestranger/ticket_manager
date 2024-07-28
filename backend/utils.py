@@ -13,7 +13,7 @@ import random
 import threading
 
 # intialize config
-config = configs['dev']
+config = configs['default']
 
 
 # define request models

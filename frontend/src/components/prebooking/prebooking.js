@@ -30,6 +30,8 @@ function Prebooking() {
 		.then(resp => {
 			// required to check if only admins have an access
 			axios.post(`${apiUrl}/validate_payload?hashed_payload=${hash}`, { content: resp.data.title }, { header: apiHeaders })
+			.then(resp => {
+			})
 			.catch(err => {
 				if (err.response.status == 401) {
 					callAlert('401. Your site session has expired. Reload the page.', 'error')

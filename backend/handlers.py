@@ -144,10 +144,10 @@ class BannerViewV1:
 async def auth_handler_v1(key: str):
 	if key == config.API_SECRET_KEY:
 		payload = {
-			'iss': config.TOKEN_ISSUER,
-			'exp': datetime.utcnow() + timedelta(seconds=config.TOKEN_EXPIRATION)
+			'iss': config.TOKEN_ISSUER
+			# 'exp': datetime.utcnow() + timedelta(seconds=config.TOKEN_EXPIRATION)
 		}
-		auth_token = jwt.encode(payload, config.TOKEN_SECRET_KEY, algorithm='HS256')
+		auth_token = jwt.encode(payload, config.TOKEN_SECRET_KEY, algorithm=config.ENCRYPTING_ALGORITHM)
 
 		return auth_token
 	else:

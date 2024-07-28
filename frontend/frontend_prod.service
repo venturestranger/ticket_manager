@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=debian
 WorkingDirectory=/home/debian/ticket_manager/frontend/build/
-ExecStart=/usr/local/bin/serve
+ExecStart=/usr/local/bin/serve -s
 Restart=always
 StartLimitInterval=0
 
