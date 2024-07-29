@@ -37,6 +37,7 @@ class EventV1(BaseModel):
 	title: str
 	registration_start_time: float
 	queue_start_time: float
+	queue_start_time_fixed: float
 	queue_finish_time: float
 	queue_duration: float
 	queue_batch_size: int

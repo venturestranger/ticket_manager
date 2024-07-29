@@ -23,7 +23,7 @@ def init_add_new_screen_v1(stage=0):
 
 	st.write('---')
 
-	registration_start_time = st.date_input('Registration start time (GMT):')
+	registration_start_time = st.date_input('Registration start time (actual registration) (GMT):')
 	date_start = st.date_input('Queue start time (GMT, +5 for local):')
 	time_start = st.time_input('_')
 
@@ -49,7 +49,7 @@ def init_add_new_screen_v1(stage=0):
 	cancel = col2.button('cancel', use_container_width=True)
 
 	if save == True:
-		ddr1.insert(collection='event', note={'title': title, 'description': description, 'banner_url': banner_url, 'queue_start_time': queue_start_time.timestamp(), 'queue_finish_time': queue_finish_time.timestamp(), 'queue_duration': queue_duration, 'queue_batch_size': queue_batch_size, 'registration_start_time': registration_start_time.timestamp(), 'host': host, 'active': active, 'hash': generate_token(content=title)})
+		ddr1.insert(collection='event', note={'title': title, 'description': description, 'banner_url': banner_url, 'queue_start_time': queue_start_time.timestamp(), 'fixed_queue_start': queue_start_time.timestamp(), 'queue_finish_time': queue_finish_time.timestamp(), 'queue_duration': queue_duration, 'queue_batch_size': queue_batch_size, 'registration_start_time': registration_start_time.timestamp(), 'host': host, 'active': active, 'hash': generate_token(content=title)})
 		return 1
 	elif cancel == True:
 		return 0

@@ -87,7 +87,7 @@ function Events() {
 								<h2>{ item.title }</h2>
 								<p>{ item.description }</p>
 								<hr/>
-								<p>→ Registration opens on <b>{ formatTime(item.registration_start_time) }</b></p>
+								<p>→ Registration opens on <b>{ formatTime(item.fixed_queue_start) }</b></p>
 								<p>→ Registration closes on <b>{ formatTime(item.queue_finish_time) }</b></p>
 								<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ !(Date.now() / 1000 < item.queue_finish_time && Date.now() / 1000 > item.registration_start_time) } onClick={ () => initQueue(item._id) }>Join queue</button>
 								</>
