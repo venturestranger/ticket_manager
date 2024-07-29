@@ -144,7 +144,7 @@ function Booking() {
 			.catch(err => {
 				if (err.response.status == 401) {
 					callAlert('401. Your site session has expired. Reload the page.', 'error')
-				} else if (err.response.status == 403) {
+				} else if (err.response.status == 403 || err.response.status == 422) {
 					callAlert('403. Your login session has expired. Reauthorize using the "Google Sign In" button above. Please, select your NU account.', 'error')
 				} else if (err.response.status == 409) {
 					callAlert('409. You have already booked a seat for this event. You cannot rebook a seat.', 'error')
