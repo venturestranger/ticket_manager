@@ -28,11 +28,11 @@ function Queues() {
 		axios.get(`${apiUrl}/list_queues?user_id=${user_id}&limit=1000000`, { headers: apiHeaders })
 		.then(resp => {
 			// console.log(resp.data)
-			setEvents(resp.data)
+			setEvents(resp.data.reverse())
 		})
 		.catch(err => {
 			if (err.response.status == 401) {
-				callAlert('403. Your site session has expired. Reload the page.', 'error')
+				callAlert('401. Your site session has expired. Reload the page.', 'error')
 			} else if (err.response.status == 403) {
 				callAlert("403. Authorize using 'Google Sign In' button above. Please, select your NU account.", 'error')
 			} else {
@@ -53,9 +53,14 @@ function Queues() {
 		<div className='container'>
 			<br/>
 
-			<h1 className='mt-5 ms-2 mb-3'>☰ Queues:</h1>
+			<h1 className='mt-5 ms-2 mb-3'>Queues:</h1>
 	
 			<div className='container mt-4 mb-5'>
+				{
+					queues.length == 0 &&
+					<p>No queues...</p>
+				}
+
 				<div className='column'>
 					{	
 					queues.map((item, index) => 
@@ -63,7 +68,12 @@ function Queues() {
 							<h2>{ item.title }</h2>
 							<hr/>
 							<p>→ You will get an access to book a seat from <b>{ formatTime(item.queue_start) }</b> until <b>{ formatTime(item.queue_finish) }</b><br/>(your device time)</p>
-							<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ !(Date.now() / 1000 < item.queue_finish && Date.now() / 1000 > item.queue_start) } onClick={ () => bookPlace(item) }>Book a seat</button>
+							{	
+								Date.now() / 1000 >= item.queue_finish ?
+									<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ true } >Missed</button>
+								:
+									<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ !(Date.now() / 1000 > item.queue_start) } onClick={ () => bookPlace(item) }>Book a seat</button>
+							}
 						</div>
 					)
 					}

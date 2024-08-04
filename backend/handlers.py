@@ -196,6 +196,9 @@ async def init_queue_handler_v1(request: InitQueueRequestV1, response: Response)
 
 		await ddr1.insert({'user_id': user_id, 'event_id': request.event_id,'queue_start': queue_start, 'queue_finish': queue_finish, 'title': event.get('title', None)}, 'queue')
 
+		# send a booking notification to the email
+		email1.send_booking_info(user_id, f'Event:\n {event.get("title", "_")}\n\nQueue details:\n- Start time: {datetime.fromtimestamp(queue_start).strftime("%Y-%m-%d %H:%M:%S")} GMT (+5 for Kazakhstan time)\n- End time: {datetime.fromtimestamp(queue_finish).strftime("%Y-%m-%d %H:%M:%S")} GMT (+5 for Kazakhstan time)', template='queue')
+
 		return 'OK'
 
 # book a place for a user if they are in the queue
@@ -215,6 +218,9 @@ async def book_place_handler_v1(request: BookRequestV1, response: Response):
 	# acquire event related information
 	event_note = await ddr1.find(id=request.event_id, collection='event')
 
+	# acquire host related information
+	host_note = (await ddr1.find_by_params(name=event_note.get('host', 'Main hall'), collection='host'))[0]
+
 	# do not let the user book a place
 	# if they have already done that
 	if len(order_note) != 0:
@@ -222,16 +228,20 @@ async def book_place_handler_v1(request: BookRequestV1, response: Response):
 	elif len(another_order_note) != 0:
 		return Response(content='Not Acceptable', status_code=406)
 	else:
-		await ddr1.insert({'user_id': user_id, 'event_id': request.event_id, 'place_id': request.place_id, 'timestamp': datetime.timestamp(datetime.utcnow().replace(tzinfo=timezone.utc))}, 'order')
-
 		place_id = request.place_id.split('_')
+		section_rows = len(host_note.get('map_' + '_'.join(place_id[1:3]), []))
+
 		for i in range(len(place_id)):
 			if place_id[i].isdigit():
-				place_id[i] = str(int(place_id[i]) + 1)
-		place_id = ' - '.join(place_id)
+				place_id[i] = int(place_id[i]) + 1
+		place_id[-2] = section_rows - place_id[-2] + 1
+
+		place_id = f'{event_note.get("title", "Event")}; {place_id[0]}, floor {place_id[1]}, {place_id[2].lower()} section, row {place_id[3]}, seat {place_id[4]}'
+
+		await ddr1.insert({'user_id': user_id, 'event_id': request.event_id, 'place_id': request.place_id, 'loadable_place_id': place_id, 'timestamp': datetime.timestamp(datetime.utcnow().replace(tzinfo=timezone.utc))}, 'order')
 
 		# send a booking notification to the email
-		email1.send_booking_info(user_id, f'- Event:\n {event_note.get("title", "_")}\n\n- Seat:\n(location - floor - section - row - seat)\n{place_id}\n\n- About:\n{event_note.get("description", "_")}')
+		email1.send_booking_info(user_id, f'- Event:\n {event_note.get("title", "_")}\n\n- Seat:\n(location, floor, section, row, seat)\n{place_id.split("; ")[-1]}\n\n- About:\n{event_note.get("description", "_")}')
 
 		return 'OK'
 
@@ -253,7 +263,17 @@ async def list_queues_handler_v1(user_id: str, response: Response):
 	except:
 		return Response(content='Forbidden', status_code=403)
 	
-	note = await ddr1.find_by_params(user_id=user_id, collection='queue')
+	note = await ddr1.find_by_params(user_id=user_id, all=True, collection='queue')
+	return note
+
+# list bookings (history)
+async def list_bookings_handler_v1(user_id: str, response: Response):
+	try:
+		user_id = validate_token(user_id)['mail']
+	except:
+		return Response(content='Forbidden', status_code=403)
+	
+	note = await ddr1.find_by_params(user_id=user_id, collection='order')
 	return note
 
 # fetch host metainformation
@@ -264,6 +284,25 @@ async def fetch_host_handler_v1(name: str, response: Response):
 		return None
 	else:
 		return host[0]
+
+# fetch which events user has joined
+async def fetch_joined_events_v1(user_id: str, response: Response):
+	try:
+		user_id = validate_token(user_id)['mail']
+	except:
+		return Response(content='Forbidden', status_code=403)
+
+	events = await ddr1.find_by_params(user_id=user_id, collection='order')
+	queues = await ddr1.find_by_params(user_id=user_id, collection='queue')
+
+	ret = []
+
+	for event in events:
+		ret.append(event.get('event_id', ''))
+	for queue in queues:
+		ret.append(queue.get('event_id', ''))
+	
+	return ret
 	
 # fetch taken seats 
 async def fetch_taken_seats_handler_v1(event_id: str, response: Response):

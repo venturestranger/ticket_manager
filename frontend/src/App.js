@@ -6,6 +6,7 @@ import Events from './components/events/events.js'
 import Header from './components/header/header.js'
 import Navbar from './components/navbar/navbar.js'
 import Queues from './components/queues/queues.js'
+import History from './components/history/history.js'
 import Booking from './components/booking/booking.js'
 import Prebooking from './components/prebooking/prebooking.js'
 import Info from './components/info/info.js'
@@ -23,6 +24,7 @@ function App() {
 			<Route path="*" element={<Events />} />
 			<Route index path="/" exact element={<Events />} />
 			<Route path="/queues" element={<Queues />} />
+			<Route path="/history" element={<History />} />
 			<Route path="/booking/:event_id/:queue_id" element={<Booking />} />
 			<Route path="/prebooking/:event_id/:hash" element={<Prebooking />} />
 			<Route path="/info" element={<Info />} />

@@ -9,6 +9,7 @@ import axios from 'axios'
 function Prebooking() {
 	const [host, setHost] = useState({ floors: 0, sections: [[]], map_0_0: [] })
 	const [hostName, setHostName] = useState(undefined)
+	const [event, setEvent] = useState({})
 	const [selectedFloor, setSelectedFloor] = useState(0)
 	const [selectedPart, setSelectedPart] = useState('0')
 	const [floorButtons, setFloorButtons] = useState([])
@@ -34,6 +35,7 @@ function Prebooking() {
 			}
 
 			setHostName(resp.data.host)
+			setEvent(resp.data)
 
 			axios.get(`${apiUrl}/fetch_host?name=${resp.data.host}`, { headers: apiHeaders })
 			.then(resp => {
@@ -68,6 +70,12 @@ function Prebooking() {
 		setSelectedPart(host.sections[0][0])
 	}
 
+	const formatSeat = (seat) => {
+		const splited = seat.split('_')
+		
+		return `${event.title}; ${splited[0]}, floor ${Number(splited[1]) + 1}, ${splited[2].toLowerCase()} section, row ${ host['map_' + selectedFloor + '_' + selectedPart].length - Number(splited[3])}, seat ${Number(splited[4]) + 1}`
+	}
+
 	const prebookSeats = () => {
 		axios.get(`${apiUrl}/remove_by_field?collection=order&field=event_id&value=${event_id}`, { headers: apiHeaders })
 		.then(resp => {
@@ -76,6 +84,7 @@ function Prebooking() {
 					event_id: event_id,
 					user_id: takenSeats[el][0],
 					place_id: el,
+					loadable_place_id: formatSeat(el),
 					timestamp: takenSeats[el][1] == null ? Date.now() / 1000 : takenSeats[el][1]
 				}, { headers: apiHeaders })
 			}
@@ -90,7 +99,7 @@ function Prebooking() {
 		<div className='container'>
 			<br/>
 
-			<h1 className='mt-5 ms-2'>⊗ Prebooking:</h1>
+			<h1 className='mt-5 ms-2'>Prebooking:</h1>
 
 			<div className='container mt-4 d-flex flex-column justify-content-between'>
 				<p>Floor:</p>

@@ -28,6 +28,7 @@ class OrderV1(BaseModel):
 	event_id: str
 	user_id: str
 	place_id: str
+	loadable_place_id: str
 	timestamp: float
 
 
@@ -212,13 +213,17 @@ class DBDriverV1:
 # define a function to send emails
 class EmailClientV1:
 	@staticmethod
-	def send_booking_info(receiver_email, booking_info):
+	def send_booking_info(receiver_email, email_message, template='booking'):
 		def _threaded():
 			msg = MIMEMultipart()
 			msg['From'] = config.EMAIL_LOGIN
 			msg['To'] = receiver_email
 			msg['Subject'] = config.EMAIL_SUBJECT
-			msg.attach(MIMEText(config.EMAIL_BOOKING_MESSAGE_TEMPLATE + booking_info, 'plain'))
+
+			if template == 'booking':
+				msg.attach(MIMEText(config.EMAIL_BOOKING_MESSAGE_TEMPLATE + email_message, 'plain'))
+			elif template == 'queue':
+				msg.attach(MIMEText(config.EMAIL_QUEUE_MESSAGE_TEMPLATE + email_message + config.EMAIL_QUEUE_MESSAGE_TEMPLATE_1, 'plain'))
 
 			try:
 				server = smtplib.SMTP_SSL('smtp.gmail.com', 465)

@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, Response, UploadFile
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from handlers import QueueViewV1, OrderViewV1, EventViewV1, HostViewV1, BannerViewV1
-from handlers import auth_handler_v1, init_queue_handler_v1, book_place_handler_v1, init_session_handler_v1, list_queues_handler_v1, fetch_host_handler_v1, fetch_taken_seats_handler_v1, validate_payload_handler_v1, remove_by_field_handler_v1
+from handlers import auth_handler_v1, init_queue_handler_v1, book_place_handler_v1, init_session_handler_v1, list_queues_handler_v1, fetch_host_handler_v1, fetch_taken_seats_handler_v1, validate_payload_handler_v1, remove_by_field_handler_v1, fetch_joined_events_v1, list_bookings_handler_v1
 from middlewares import auth_middleware_v1
 from utils import QueueV1, OrderV1, EventV1, HostV1, InitSessionRequestV1, BookRequestV1, InitQueueRequestV1
 from utils import config
@@ -117,6 +117,10 @@ async def _init_session_handler_v1(request: InitSessionRequestV1, response: Resp
 async def _list_queues_handler_v1(user_id: str, response: Response):
 	return await list_queues_handler_v1(user_id, response)
 
+@api_v1.get('/list_bookings')
+async def _list_bookings_handler_v1(user_id: str, response: Response):
+	return await list_bookings_handler_v1(user_id, response)
+
 @api_v1.get('/fetch_host')
 async def _fetch_host_handler_v1(name: str, response: Response):
 	return await fetch_host_handler_v1(name, response)
@@ -132,6 +136,10 @@ async def _validate_payload_handler_v1(hashed_payload: str, request: Request, re
 @api_v1.get('/remove_by_field')
 async def _remove_by_field_handler_v1(collection: str, field: str, value: str):
 	return await remove_by_field_handler_v1(collection, field, value)
+
+@api_v1.get('/fetch_joined_events')
+async def _fetch_joined_events_v1(user_id: str, response: Response):
+	return await fetch_joined_events_v1(user_id, response)
 
 # ensuring api versioning
 app.mount('/api/rest/v1/', api_v1)

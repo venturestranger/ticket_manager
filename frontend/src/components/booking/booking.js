@@ -131,6 +131,12 @@ function Booking() {
 		setSelectedPart(host.sections[0][0])
 	}
 
+	const formatSeat = (seat) => {
+		const splited = seat.split('_')
+		
+		return `${splited[0]}, floor ${Number(splited[1]) + 1}, ${splited[2].toLowerCase()} section, row ${ host['map_' + selectedFloor + '_' + selectedPart].length - Number(splited[3])}, seat ${Number(splited[4]) + 1}`
+	}
+
 	const takeSeat = () => {
 		if (selectedSeat == undefined) {
 			setSystemMessage('Choose any free seat.')
@@ -165,7 +171,7 @@ function Booking() {
 		<div className='container'>
 			<br/>
 
-			<h1 className='mt-5 ms-2'>⊗ Booking:</h1>
+			<h1 className='mt-5 ms-2'>Booking:</h1>
 			{	
 				systemMessage != undefined &&
 				<div className={`alert alert-${systemMessageStatus} ms-3 me-3`}>
@@ -174,7 +180,7 @@ function Booking() {
 			}
 
 			<div className='container mt-2 d-flex flex-column justify-content-between'>
-				<p> { timer } seconds elapsed </p>
+				<p> { Math.ceil(queue_finish - Date.now() / 1000) } seconds left </p>
 
 				<p>Floor:</p>
 				<div className='btn-group' role='group'>
@@ -191,7 +197,7 @@ function Booking() {
 				<div>
 				{
 					host.sections[selectedFloor].map((name, index) => (
-						<button onClick={ () => setSelectedPart(name) } type='button' className={ selectedPart == name ? 'btn btn-primary me-1' : 'btn btn-secondary  me-1' }>{ name }</button>
+						<button onClick={ () => setSelectedPart(name) } type='button' className={ selectedPart == name ? 'btn btn-primary me-1 mb-1' : 'btn btn-secondary  me-1 mb-1' }>{ name }</button>
 					))
 				}
 				</div>
@@ -217,10 +223,13 @@ function Booking() {
 			}
 
 			<p className='mt-2'>Stage ↓</p>
+			<hr/>
+
+			<p className='mt-2'>Your seat: <b>{selectedSeat ? formatSeat(selectedSeat) : '_'}</b></p>
 			</div>
 
 			<div className='container'>
-				<button  style={{width: '100%', fontSize: 22}} className='mt-4 mb-5 btn btn-danger' onClick={ takeSeat }> Book </button>
+				<button  style={{width: '100%', fontSize: 22}} className='mt-4 mb-5 btn btn-danger' onClick={ takeSeat }>Book</button>
 			</div>
 
 			<br/>

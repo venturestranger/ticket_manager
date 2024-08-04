@@ -123,7 +123,7 @@ def fetch_seats_xlsx(event_id: str):
 	coll = client[config.DB_NAME]['order']
 	event = DBDriverV1.find('event', id=event_id)
 
-	fields = {'user_id': 1, 'place_id': 1, 'timestamp': 1, '_id': 0}
+	fields = {'user_id': 1, 'loadable_place_id': 1, 'timestamp': 1, '_id': 0}
 
 	data_list = []
 	for document in coll.find({'event_id': event_id}, projection=fields):
@@ -132,7 +132,7 @@ def fetch_seats_xlsx(event_id: str):
 	df = DataFrame(data_list)
 
 	df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
-	df['place_id'] = df['place_id']
+	df['loadable_place_id'] = df['loadable_place_id']
 
 	writer = ExcelWriter(config.TEMP_DIR + 'seats_data.xlsx', engine='xlsxwriter')
 	df.to_excel(writer, sheet_name='seats', index=True)

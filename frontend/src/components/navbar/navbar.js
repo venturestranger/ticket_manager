@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { jwtDecode } from 'jwt-decode'
 import eventsMenuIcon from '../../media/eventsMenuIcon.svg';
 import queuesMenuIcon from '../../media/queuesMenuIcon.svg';
+import historyMenuIcon from '../../media/historyMenuIcon.svg';
 
 
 function Navbar() {
@@ -46,6 +47,10 @@ function Navbar() {
 			<Link className='nav-link text-black d-flex flex-column align-items-center' to='/queues'>
 				<img style={{opacity: location.pathname == '/queues' ? 1 : 0.4, width: '30px'}} src={queuesMenuIcon}/>
 				<p style={{opacity: location.pathname == '/queues' ? 1 : 0.4, height: '10px'}}>Queues</p>
+			</Link>
+			<Link className='nav-link text-black d-flex flex-column align-items-center' to='/history'>
+				<img style={{opacity: location.pathname == '/history' ? 1 : 0.4, width: '30px'}} src={historyMenuIcon}/>
+				<p style={{opacity: location.pathname == '/history' ? 1 : 0.4, height: '10px'}}>History</p>
 			</Link>
 		</nav>
 	)
