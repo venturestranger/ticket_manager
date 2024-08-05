@@ -85,7 +85,6 @@ function Booking() {
 			setTimer(prevTimer => prevTimer + 1)
 		}, bookingRefreshPageTime)
 
-
 		// check if it is before the interval
 		if (timestamp_ < queue_start) {
 			// render not ready
