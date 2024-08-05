@@ -28,7 +28,7 @@ function formatTime(timestamp) {
 	return formattedDate
 }
 
-var timestamp_ = Date.now() / 1000
+var timestamp_ = 0 // current timestamp fetched from an API server
 var timestamp_fetching_ = false
 
 async function fetchUtcTimestamp() {
@@ -43,11 +43,13 @@ async function fetchUtcTimestamp() {
 				timestamp_ = res.unixtime + timeDelay
 			})
 			.catch(err => {
-
+				console.error('No access to an external time API')
+				timestamp_ = Date.now() / 1000
 			})
 		})
 		.catch(err => {
-
+			console.error('No access to an external time API')
+			timestamp_ = Date.now() / 1000
 		})
 
 		return timestamp_

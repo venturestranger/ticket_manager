@@ -10,7 +10,6 @@ import axios from 'axios'
 function Queues() {
 	const [queues, setEvents] = useState([])
 	const [token, setToken] = useState(-1)
-	const [timer, setTimer] = useState(0)
 	const user_id = localStorage.getItem('user_id')
 	const navigate = useNavigate()
 
@@ -21,10 +20,6 @@ function Queues() {
 	}
 
 	useEffect(() => {
-		const intervalId = setInterval(() => {
-			setTimer(prevTimer => prevTimer + 1)
-		}, queuesRefreshPageTime)
-
 		axios.get(`${apiUrl}/list_queues?user_id=${user_id}&limit=1000000`, { headers: apiHeaders })
 		.then(resp => {
 			// console.log(resp.data)
@@ -39,9 +34,7 @@ function Queues() {
 				callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
 			}
 		})
-
-		return () => clearInterval(intervalId)
-	}, [timer])
+	}, [])
 
 	const bookPlace = (queue) => {
 		Cookies.set(`${queue._id}$queue_start`, queue.queue_start, { expires: cookiesExpirationDays })

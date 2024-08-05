@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays } from '../../config.js'
-import { formatTime, fetchUtcTimestamp, timestamp_ } from '../../utils.js'
+import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays, eventsRefreshPageTime } from '../../config.js'
+import { formatTime, timestamp_ } from '../../utils.js'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../../components/navbar/navbar.js'
 import Cookies from 'js-cookie'
@@ -9,7 +9,7 @@ import axios from 'axios'
 
 
 function Events() {
-	const [events, setEvents] = useState([])
+	const [events, setEvents] = useState([{registration_start_time: 0, queue_finish_time: 0}])
 	const [expanded, setExpanded] = useState(-1)
 	const [token, setToken] = useState(-1)
 	const [systemMessage, setSystemMessage] = useState(undefined)
@@ -106,7 +106,7 @@ function Events() {
 								<hr/>
 								<p>→ Registration opens on <b>{ formatTime(item.fixed_queue_start) }</b></p>
 								<p>→ Registration closes on <b>{ formatTime(item.queue_finish_time) }</b></p>
-								<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ !(timestamp_ < item.queue_finish_time && timestamp_ > item.registration_start_time && !joinedEvents.includes(item._id)) } onClick={ () => initQueue(item._id) }>Join queue</button>
+								<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ (timestamp_ > item.queue_finish_time || timestamp_ < item.registration_start_time || joinedEvents.includes(item._id)) } onClick={ () => initQueue(item._id) }>Join queue</button>
 								</>
 							) :
 								<>
