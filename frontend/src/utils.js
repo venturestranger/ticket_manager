@@ -1,3 +1,6 @@
+import { timeDelay } from './config.js'
+
+
 const months = [
 	'January',
 	'February',
@@ -25,4 +28,30 @@ function formatTime(timestamp) {
 	return formattedDate
 }
 
-export { formatTime }  
+var timestamp_ = Date.now() / 1000
+var timestamp_fetching_ = false
+
+async function fetchUtcTimestamp() {
+	if (timestamp_fetching_ == false) {
+		timestamp_fetching_ = true
+
+		fetch('http://worldtimeapi.org/api/timezone/Etc/UTC')
+		.then(resp => {
+			resp.json()
+			.then(res => {
+				timestamp_fetching_ = false
+				timestamp_ = res.unixtime + timeDelay
+			})
+			.catch(err => {
+
+			})
+		})
+		.catch(err => {
+
+		})
+
+		return timestamp_
+	}
+}
+
+export { formatTime, fetchUtcTimestamp, timestamp_ }  

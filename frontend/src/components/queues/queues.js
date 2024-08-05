@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays, queuesRefreshPageTime } from '../../config.js'
 import { useNavigate } from 'react-router-dom'
-import { formatTime } from '../../utils.js'
+import { formatTime, timestamp_ } from '../../utils.js'
 import Cookies from 'js-cookie'
 import logo from '../../logo.svg'
 import axios from 'axios'
@@ -69,10 +69,10 @@ function Queues() {
 							<hr/>
 							<p>→ You will get an access to book a seat from <b>{ formatTime(item.queue_start) }</b> until <b>{ formatTime(item.queue_finish) }</b><br/>(your device time)</p>
 							{	
-								Date.now() / 1000 >= item.queue_finish ?
+								timestamp_ >= item.queue_finish ?
 									<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ true } >Missed</button>
 								:
-									<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ !(Date.now() / 1000 > item.queue_start) } onClick={ () => bookPlace(item) }>Book a seat</button>
+									<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ !(timestamp_ > item.queue_start) } onClick={ () => bookPlace(item) }>Book a seat</button>
 							}
 						</div>
 					)

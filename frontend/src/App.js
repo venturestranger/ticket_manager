@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays } from './config.js'
-import { formatTime } from './utils.js'
+import { apiUrl, apiToken, apiHeaders, timeRefresh } from './config.js'
+import { formatTime, fetchUtcTimestamp } from './utils.js'
 import Events from './components/events/events.js'
 import Header from './components/header/header.js'
 import Navbar from './components/navbar/navbar.js'
@@ -16,6 +16,18 @@ import axios from 'axios'
 
 
 function App() {
+	const [timer, setTimer] = useState(0)
+
+	useEffect(() => {
+		fetchUtcTimestamp()
+
+		const intervalId = setInterval(() => {
+			setTimer(prevTimer => prevTimer + 1)
+		}, timeRefresh)
+
+		return () => clearInterval(intervalId)
+	}, [timer])
+
 	return (
 		<BrowserRouter>
 		<Header />

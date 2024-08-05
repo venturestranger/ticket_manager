@@ -169,6 +169,12 @@ async def init_queue_handler_v1(request: InitQueueRequestV1, response: Response)
 	# fetch the event to get the title of
 	event = await ddr1.find(id=request.event_id, collection='event')
 
+	# check if an action matches the time
+	current_time = datetime.timestamp(datetime.utcnow().replace(tzinfo=timezone.utc))
+
+	if current_time < event.get('registration_start_time', 0) or current_time > event.get('queue_finish_time', 0):
+		return Response(content='Not Acceptable', status_code=406)
+
 	# don't let the user get in the queue 
 	# if the user is already in the valid queue
 	# or the user has already booked a place
@@ -220,6 +226,12 @@ async def book_place_handler_v1(request: BookRequestV1, response: Response):
 
 	# acquire host related information
 	host_note = (await ddr1.find_by_params(name=event_note.get('host', 'Main hall'), collection='host'))[0]
+
+	# check if an action matches the time
+	current_time = datetime.timestamp(datetime.utcnow().replace(tzinfo=timezone.utc))
+
+	if current_time < event.get('registration_start_time', 0) or current_time > event.get('queue_finish_time', 0):
+		return Response(content='Not Acceptable', status_code=406)
 
 	# do not let the user book a place
 	# if they have already done that

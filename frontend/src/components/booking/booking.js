@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays, bookingRefreshPageTime } from '../../config.js'
 import { useParams, useNavigate } from 'react-router-dom'
-import { formatTime } from '../../utils.js'
+import { formatTime, timestamp_ } from '../../utils.js'
 import Cookies from 'js-cookie'
 import logo from '../../logo.svg'
 import axios from 'axios'
@@ -43,10 +43,6 @@ function Booking() {
 	}
 
 	useEffect(() => {
-		const intervalId = setInterval(() => {
-			setTimer(prevTimer => prevTimer + 1)
-		}, bookingRefreshPageTime)
-
 		// check if the user is logged in (cannot access from logged in)
 		if (user_id == undefined) {
 			// render not authorized
@@ -58,59 +54,47 @@ function Booking() {
 			// render invalid access
 			callAlert('406. Acquire access to this page via "Queues" button below.', 'error')
 		}
+		
+		axios.get(`${apiUrl}/event?id=${event_id}`, { headers: apiHeaders })
+		.then(resp => {
+			setHostName(resp.data.host)
 
-		// check if it is before the interval
-		if (Date.now() / 1000 < queue_start) {
-			// render not ready
-			callAlert('406. An access to this page will be given soon.', 'error')
-		}
-
-		// check if it is after the interval (remove queue if expired)
-		if (Date.now() / 1000 > queue_finish) {
-			callAlert('410. Your queue time has expired.', 'error')
-		}
-
-		// fetch the name of the host (using caching also)
-		if (hostName == undefined) {
-			axios.get(`${apiUrl}/event?id=${event_id}`, { headers: apiHeaders })
-			.then(resp => {
-				setHostName(resp.data.host)
-
-				axios.get(`${apiUrl}/fetch_host?name=${resp.data.host}`, { headers: apiHeaders })
-				.then(resp => {
-					setHost(resp.data)
-
-					if (timer == 0) {
-						setSelectedFloor(0)
-						setSelectedPart(resp.data.sections[0][0])
-					}
-				})
-				.catch(err => {
-					// console.log(err)
-					callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
-				})
-			})
-			.catch(err => {
-				if (err.response.status == 401) {
-					callAlert('401. Your site session has expired. Reload the page.', 'error')
-				} else {
-					callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
-				}
-			})
-		} else {
-			axios.get(`${apiUrl}/fetch_host?name=${hostName}`, { headers: apiHeaders })
+			axios.get(`${apiUrl}/fetch_host?name=${resp.data.host}`, { headers: apiHeaders })
 			.then(resp => {
 				setHost(resp.data)
 
-				if (timer == 0) {
-					setSelectedFloor(0)
-					setSelectedPart(resp.data.sections[0][0])
-				}
+				setSelectedFloor(0)
+				setSelectedPart(resp.data.sections[0][0])
 			})
 			.catch(err => {
 				// console.log(err)
 				callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
 			})
+		})
+		.catch(err => {
+			if (err.response.status == 401) {
+				callAlert('401. Your site session has expired. Reload the page.', 'error')
+			} else {
+				callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
+			}
+		})
+	}, [])
+
+	useEffect(() => {
+		const intervalId = setInterval(() => {
+			setTimer(prevTimer => prevTimer + 1)
+		}, bookingRefreshPageTime)
+
+
+		// check if it is before the interval
+		if (timestamp_ < queue_start) {
+			// render not ready
+			callAlert('406. An access to this page will be given soon.', 'error')
+		}
+
+		// check if it is after the interval (remove queue if expired)
+		if (timestamp_ > queue_finish) {
+			callAlert('410. Your queue time has expired.', 'error')
 		}
 
 		axios.get(`${apiUrl}/fetch_taken_seats?event_id=${event_id}`, { headers: apiHeaders })
@@ -120,7 +104,11 @@ function Booking() {
 		})
 		.catch(err => {
 			// console.log(err)
-			callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
+			if (err.response.status == 401) {
+				callAlert('401. Your site session has expired. Reload the page.', 'error')
+			} else {
+				callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
+			}
 		})
 
 		return () => clearInterval(intervalId)
@@ -180,7 +168,7 @@ function Booking() {
 			}
 
 			<div className='container mt-2 d-flex flex-column justify-content-between'>
-				<p> { Math.ceil(queue_finish - Date.now() / 1000) } seconds left </p>
+				<p> { Math.max(0, Math.ceil(queue_finish - timestamp_)) } seconds left </p>
 
 				<p>Floor:</p>
 				<div className='btn-group' role='group'>

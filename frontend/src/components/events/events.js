@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays } from '../../config.js'
-import { formatTime } from '../../utils.js'
+import { formatTime, fetchUtcTimestamp, timestamp_ } from '../../utils.js'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../../components/navbar/navbar.js'
 import Cookies from 'js-cookie'
@@ -32,7 +32,6 @@ function Events() {
 			callAlert(`${err.response.status}. Something went wrong. Contact the administrator.`, 'error')
 		})
 
-		
 		if (localStorage.getItem('user_id') != undefined) {
 			axios.get(`${apiUrl}/fetch_joined_events?user_id=${localStorage.getItem('user_id')}`, { headers: apiHeaders })
 			.then(resp => {
@@ -62,6 +61,8 @@ function Events() {
 				callAlert('401. Your site session has expired. Reload the page.', 'error')
 			} else if (err.response.status == 403 || err.response.status == 422) {
 				callAlert("403. Authorize using 'Google Sign In' button above. Please, select your NU account.", 'error')
+			} else if (err.response.status == 406) {
+				callAlert("406. Join the queue during the specified time.", 'error')
 			} else if (err.response.status == 409) {
 				setSystemMessage('You have already joined this queue or booked a seat.')
 				setSystemMessageStatus('danger')
@@ -105,7 +106,7 @@ function Events() {
 								<hr/>
 								<p>→ Registration opens on <b>{ formatTime(item.fixed_queue_start) }</b></p>
 								<p>→ Registration closes on <b>{ formatTime(item.queue_finish_time) }</b></p>
-								<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ !(Date.now() / 1000 < item.queue_finish_time && Date.now() / 1000 > item.registration_start_time && !joinedEvents.includes(item._id)) } onClick={ () => initQueue(item._id) }>Join queue</button>
+								<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ !(timestamp_ < item.queue_finish_time && timestamp_ > item.registration_start_time && !joinedEvents.includes(item._id)) } onClick={ () => initQueue(item._id) }>Join queue</button>
 								</>
 							) :
 								<>

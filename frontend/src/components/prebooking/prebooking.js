@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays, bookingRefreshPageTime } from '../../config.js'
 import { useParams, useNavigate } from 'react-router-dom'
-import { formatTime } from '../../utils.js'
+import { formatTime, timestamp_ } from '../../utils.js'
 import logo from '../../logo.svg'
 import axios from 'axios'
 
@@ -85,7 +85,7 @@ function Prebooking() {
 					user_id: takenSeats[el][0],
 					place_id: el,
 					loadable_place_id: formatSeat(el),
-					timestamp: takenSeats[el][1] == null ? Date.now() / 1000 : takenSeats[el][1]
+					timestamp: takenSeats[el][1] == null ? timestamp_ : takenSeats[el][1]
 				}, { headers: apiHeaders })
 			}
 		})
@@ -137,7 +137,7 @@ function Prebooking() {
 								<button style={{ fontSize: 10, padding: 3 }} onClick={ () => {
 									if (takenSeats.hasOwnProperty(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) == false) {
 										const buf = {...takenSeats}
-										buf[`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`] = ['admin', Date.now() / 1000]
+										buf[`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`] = ['admin', timestamp_]
 
 										setTakenSeats(buf) 
 									} else {
