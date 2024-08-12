@@ -1,4 +1,4 @@
-const apiUrl = 'http://78.40.108.12/api/rest/v1'
+const apiUrl = 'https://nuticket.kz/api/rest/v1'
 const apiToken = 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJHR1l4dVp4Yk5xamttd3RVaGhiQVBHUUJnbHZmRERwdyJ9.3clbn_l7nyIXNG_laXi9sOYwKRcbAWeVquoGRCIZN88USqXvN3MHixSEntiSs8EXPI5ylxZ4AXEAWaqrz3eEXw'
 const apiKey = 'PPPLHUkFllqvliVONmEZqoePYpauInMb'
 const apiHeaders = {

@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=debian
 WorkingDirectory=/home/debian/ticket_manager/backend/
-ExecStart=/home/debian/.local/bin/gunicorn -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:6875 main:app_factory
+ExecStart=/home/debian/.local/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:6875 main:app_factory
 Restart=always
 StartLimitInterval=0
 

@@ -20,9 +20,6 @@ function Header() {
 	}
 
 	const logIn = (email) => {
-		// to be removed later
-		email = prompt('Email:').toLowerCase().trim()
-
 		axios.post(`${apiUrl}/init_sess`, { mail: email }, { withCredentials: true, headers: apiHeaders })
 		.then(resp => {
 			localStorage.setItem('user_id', resp.data.user_id)
@@ -37,7 +34,6 @@ function Header() {
 		})
 	}
 
-	/*
 	return (
 		<div className='fixed-top container pt-2 pb-2 rounded-bottom d-flex justify-content-end bg-light'>
 		<GoogleOAuthProvider clientId={ googleOAuthId }>
@@ -60,13 +56,14 @@ function Header() {
 		</GoogleOAuthProvider>
 		</div>
 	)
-	*/
 
+	/*
 	return (
 		<div className='fixed-top container pt-2 pb-2 rounded-bottom d-flex justify-content-end bg-light'>
 			<button className='btn btn-primary w-25' onClick={() => logIn('test@nu.edu.kz')}> Log In </button>
 		</div>
 	)
+	*/
 }
 
 export default Header

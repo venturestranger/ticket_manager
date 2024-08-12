@@ -230,9 +230,6 @@ async def book_place_handler_v1(request: BookRequestV1, response: Response):
 	# check if an action matches the time
 	current_time = datetime.timestamp(datetime.utcnow().replace(tzinfo=timezone.utc))
 
-	if current_time < event.get('registration_start_time', 0) or current_time > event.get('queue_finish_time', 0):
-		return Response(content='Not Acceptable', status_code=406)
-
 	# do not let the user book a place
 	# if they have already done that
 	if len(order_note) != 0:
