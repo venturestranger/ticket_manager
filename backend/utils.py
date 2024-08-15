@@ -2,6 +2,7 @@ from pydantic import BaseModel, Extra
 from datetime import datetime, timedelta, timezone
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
+import aiohttp
 
 import smtplib
 from email.mime.text import MIMEText
@@ -235,4 +236,14 @@ class EmailClientV1:
 
 		task = threading.Thread(target=_threaded)
 		task.start()
+	
+
+# implements a function to access an external http API
+async def fetch_time():
+	async with aiohttp.ClientSession() as session:
+		async with session.get(config.TIME_API_URL) as response:
+			if response.status == 200:
+				return await response.json()
+			else:
+				raise Exception('time api error')
 

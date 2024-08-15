@@ -72,8 +72,9 @@ function Prebooking() {
 
 	const formatSeat = (seat) => {
 		const splited = seat.split('_')
+		const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789'
 		
-		return `${event.title}; ${splited[0]}, floor ${Number(splited[1]) + 1}, ${splited[2].toLowerCase()} section, row ${ host['map_' + selectedFloor + '_' + selectedPart].length - Number(splited[3])}, seat ${Number(splited[4]) + 1}`
+		return `${event.title}; ${splited[0]}, floor ${Number(splited[1]) + 1}, ${splited[2].toLowerCase()} section, row ${ alphabet.charAt(host['map_' + selectedFloor + '_' + selectedPart].length - Number(splited[3]) - 1)}, seat ${Number(splited[4]) + 1}`
 	}
 
 	const prebookSeats = () => {

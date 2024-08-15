@@ -1,6 +1,6 @@
 from utils import QueueV1, OrderV1, EventV1, HostV1, InitSessionRequestV1, BookRequestV1, InitQueueRequestV1
 from utils import DBDriverV1 as ddr1, EmailClientV1 as email1
-from utils import config, get_random_name, generate_token, validate_token
+from utils import config, get_random_name, generate_token, validate_token, fetch_time
 from datetime import datetime, timedelta, timezone
 from fastapi import Request
 from fastapi.responses import Response, FileResponse, StreamingResponse
@@ -239,11 +239,12 @@ async def book_place_handler_v1(request: BookRequestV1, response: Response):
 	else:
 		place_id = request.place_id.split('_')
 		section_rows = len(host_note.get('map_' + '_'.join(place_id[1:3]), []))
+		alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789'
 
 		for i in range(len(place_id)):
 			if place_id[i].isdigit():
 				place_id[i] = int(place_id[i]) + 1
-		place_id[-2] = section_rows - place_id[-2] + 1
+		place_id[-2] = alphabet[section_rows - place_id[-2]]
 
 		place_id = f'{event_note.get("title", "Event")}; {place_id[0]}, floor {place_id[1]}, {place_id[2].lower()} section, row {place_id[3]}, seat {place_id[4]}'
 
@@ -341,3 +342,10 @@ async def remove_by_field_handler_v1(collection: str, field: str, value: str):
 	await ddr1.remove_by_params(collection=collection, **{field: value})
 	
 	return 'OK'
+
+# implements external time API
+async def fetch_time_handler_v1():
+	try:
+		return await fetch_time()
+	except:
+		return Response(content='Internal Server Error', status_code=500)

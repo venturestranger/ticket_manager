@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, Response, UploadFile
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from handlers import QueueViewV1, OrderViewV1, EventViewV1, HostViewV1, BannerViewV1
-from handlers import auth_handler_v1, init_queue_handler_v1, book_place_handler_v1, init_session_handler_v1, list_queues_handler_v1, fetch_host_handler_v1, fetch_taken_seats_handler_v1, validate_payload_handler_v1, remove_by_field_handler_v1, fetch_joined_events_v1, list_bookings_handler_v1
+from handlers import auth_handler_v1, init_queue_handler_v1, book_place_handler_v1, init_session_handler_v1, list_queues_handler_v1, fetch_host_handler_v1, fetch_taken_seats_handler_v1, validate_payload_handler_v1, remove_by_field_handler_v1, fetch_joined_events_v1, list_bookings_handler_v1, fetch_time_handler_v1
 from middlewares import auth_middleware_v1
 from utils import QueueV1, OrderV1, EventV1, HostV1, InitSessionRequestV1, BookRequestV1, InitQueueRequestV1
 from utils import config
@@ -11,6 +11,7 @@ from utils import config
 # intialize the app (root) and api (might be versioned)
 app = FastAPI()
 api_v1 = FastAPI()
+api_etc_v1 = FastAPI()
 
 
 # define API endpoints for V1 version
@@ -141,17 +142,25 @@ async def _remove_by_field_handler_v1(collection: str, field: str, value: str):
 async def _fetch_joined_events_v1(user_id: str, response: Response):
 	return await fetch_joined_events_v1(user_id, response)
 
-# ensuring api versioning
-app.mount('/api/rest/v1/', api_v1)
+
+# Non-secured (etc) endpoints V1
+@api_etc_v1.get('/fetch_time')
+async def _fetch_time_handler_v1():
+	return await fetch_time_handler_v1()
+
 
 # ensuring CORS policy supported
-app.add_middleware(
+api_v1.add_middleware(
 	CORSMiddleware,
 	allow_origins=['http://localhost:3000'],
 	allow_credentials=True,
 	allow_methods=['*'],
 	allow_headers=['*']
 )
+
+# ensuring api versioning
+app.mount('/api/rest/v1/', api_v1)
+app.mount('/api/etc/v1/', api_etc_v1)
 
 # ensuring connection validation by JWT tokens
 @api_v1.middleware('http')

@@ -24,6 +24,7 @@ class Config:
 	DAILY_QUEUE_TIMESPAN = [5, 17] # from 5:00 GMT to 17:00 GMT
 	EMAIL_DOMAIN = '@nu.edu.kz'
 	ENCRYPTING_ALGORITHM = 'HS512'
+	TIME_API_URL = 'http://worldtimeapi.org/api/timezone/Etc/UTC'
 
 
 # define development config

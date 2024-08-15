@@ -12,5 +12,6 @@ const timeRefresh = 1000 // in miliseconds
 const queuesRefreshPageTime = 3000
 const eventsRefreshPageTime = 3000
 const googleOAuthId = '603878420078-g9ak0nsf757penkli6t0pb7v9ut92gle.apps.googleusercontent.com'
+const timeServerAPI = 'https://nuticket.kz/utc'
 
-export { apiUrl, apiToken, apiHeaders, cookiesExpirationDays, bookingRefreshPageTime, queuesRefreshPageTime, googleOAuthId, timeDelay, timeRefresh, eventsRefreshPageTime }
+export { apiUrl, apiToken, apiHeaders, cookiesExpirationDays, bookingRefreshPageTime, queuesRefreshPageTime, googleOAuthId, timeDelay, timeRefresh, eventsRefreshPageTime, timeServerAPI }

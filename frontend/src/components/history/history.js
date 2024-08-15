@@ -23,7 +23,6 @@ function History() {
 	useEffect(() => {
 		axios.get(`${apiUrl}/list_bookings?user_id=${user_id}&limit=1000000`, { headers: apiHeaders })
 		.then(resp => {
-			// console.log(resp.data)
 			setEvents(resp.data)
 		})
 		.catch(err => {

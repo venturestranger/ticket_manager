@@ -1,4 +1,4 @@
-import { timeDelay } from './config.js'
+import { timeDelay, timeServerAPI } from './config.js'
 
 
 const months = [
@@ -35,7 +35,7 @@ async function fetchUtcTimestamp() {
 	if (timestamp_fetching_ == false) {
 		timestamp_fetching_ = true
 
-		fetch('http://worldtimeapi.org/api/timezone/Etc/UTC')
+		fetch(timeServerAPI)
 		.then(resp => {
 			resp.json()
 			.then(res => {
@@ -43,11 +43,13 @@ async function fetchUtcTimestamp() {
 				timestamp_ = res.unixtime + timeDelay
 			})
 			.catch(err => {
+				timestamp_fetching_ = false
 				console.error('No access to an external time API')
 				timestamp_ = Date.now() / 1000
 			})
 		})
 		.catch(err => {
+			timestamp_fetching_ = false
 			console.error('No access to an external time API')
 			timestamp_ = Date.now() / 1000
 		})
