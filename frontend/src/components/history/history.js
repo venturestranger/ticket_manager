@@ -52,9 +52,9 @@ function History() {
 					{	
 					events.map((item, index) => 
 						<div key={ index } className='border border-black rounded col bg-white mb-3 p-3 shadow' >
-							<h2>{ item.loadable_place_id.split(';')[0] }</h2>
+							<h2>{ item.loadable_place_id.split('; ')[0] }</h2>
 							<hr/>
-							<p>→ Seat: <b>{ item.loadable_place_id.split(';')[1] }</b></p>
+							<p>→ Seat: <b>{ item.loadable_place_id.split('; ')[1] }</b></p>
 							<p>→ Booking date: <b>{ formatTime(item.timestamp) }</b></p>
 						</div>
 					)

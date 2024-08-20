@@ -65,6 +65,7 @@ class BookRequestV1(BaseModel):
 	event_id: str
 	user_id: str
 	place_id: str
+	loadable_place_id: str
 
 
 class InitSessionRequestV1(BaseModel):

@@ -1,6 +1,6 @@
 from utils import QueueV1, OrderV1, EventV1, HostV1, InitSessionRequestV1, BookRequestV1, InitQueueRequestV1
 from utils import DBDriverV1 as ddr1, EmailClientV1 as email1
-from utils import config, get_random_name, generate_token, validate_token, fetch_time
+from utils import config, get_random_name, generate_token, validate_token
 from datetime import datetime, timedelta, timezone
 from fastapi import Request
 from fastapi.responses import Response, FileResponse, StreamingResponse
@@ -144,8 +144,22 @@ class BannerViewV1:
 async def auth_handler_v1(key: str):
 	if key == config.API_SECRET_KEY:
 		payload = {
-			'iss': config.TOKEN_ISSUER
+			'iss': config.TOKEN_ISSUER,
+			'role': 'user',
+			'permissions': {
+				'GET': ['fetch_time', 'fetch_joined_events', 'fetch_host', 'fetch_taken_seats', 'list_bookings', 'list_queues', 'queue', 'order', 'event', 'host', 'banner'],
+				'POST': ['init_sess', 'book_place', 'init_queue', 'validate_payload'],
+				'DELETE': ['queue']
+			}
 			# 'exp': datetime.utcnow() + timedelta(seconds=config.TOKEN_EXPIRATION)
+		}
+		auth_token = jwt.encode(payload, config.TOKEN_SECRET_KEY, algorithm=config.ENCRYPTING_ALGORITHM)
+
+		return auth_token
+	elif key == config.API_ADMIN_SECRET_KEY: # gives all permissions
+		payload = {
+			'iss': config.TOKEN_ISSUER,
+			'role': 'admin'
 		}
 		auth_token = jwt.encode(payload, config.TOKEN_SECRET_KEY, algorithm=config.ENCRYPTING_ALGORITHM)
 
@@ -237,21 +251,10 @@ async def book_place_handler_v1(request: BookRequestV1, response: Response):
 	elif len(another_order_note) != 0:
 		return Response(content='Not Acceptable', status_code=406)
 	else:
-		place_id = request.place_id.split('_')
-		section_rows = len(host_note.get('map_' + '_'.join(place_id[1:3]), []))
-		alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789'
-
-		for i in range(len(place_id)):
-			if place_id[i].isdigit():
-				place_id[i] = int(place_id[i]) + 1
-		place_id[-2] = alphabet[section_rows - place_id[-2]]
-
-		place_id = f'{event_note.get("title", "Event")}; {place_id[0]}, floor {place_id[1]}, {place_id[2].lower()} section, row {place_id[3]}, seat {place_id[4]}'
-
-		await ddr1.insert({'user_id': user_id, 'event_id': request.event_id, 'place_id': request.place_id, 'loadable_place_id': place_id, 'timestamp': datetime.timestamp(datetime.utcnow().replace(tzinfo=timezone.utc))}, 'order')
+		await ddr1.insert({'user_id': user_id, 'event_id': request.event_id, 'place_id': request.place_id, 'loadable_place_id': event_note.get('title', 'Event name') + '; ' + request.loadable_place_id, 'timestamp': datetime.timestamp(datetime.utcnow().replace(tzinfo=timezone.utc))}, 'order')
 
 		# send a booking notification to the email
-		email1.send_booking_info(user_id, f'- Event:\n {event_note.get("title", "_")}\n\n- Seat:\n(location, floor, section, row, seat)\n{place_id.split("; ")[-1]}\n\n- About:\n{event_note.get("description", "_")}')
+		email1.send_booking_info(user_id, f'- Event:\n {event_note.get("title", "_")}\n\n- Seat:\n(location, floor, section, row, seat)\n{request.loadable_place_id}\n\n- About:\n{event_note.get("description", "_")}')
 
 		return 'OK'
 
@@ -343,9 +346,6 @@ async def remove_by_field_handler_v1(collection: str, field: str, value: str):
 	
 	return 'OK'
 
-# implements external time API
-async def fetch_time_handler_v1():
-	try:
-		return await fetch_time()
-	except:
-		return Response(content='Internal Server Error', status_code=500)
+# implements time API
+def fetch_time_handler_v1():
+	return datetime.timestamp(datetime.utcnow().replace(tzinfo=timezone.utc))

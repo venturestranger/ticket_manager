@@ -40,11 +40,10 @@ async function fetchUtcTimestamp() {
 			resp.json()
 			.then(res => {
 				timestamp_fetching_ = false
-				timestamp_ = res.unixtime + timeDelay
+				timestamp_ = res
 			})
 			.catch(err => {
 				timestamp_fetching_ = false
-				console.error('No access to an external time API')
 				timestamp_ = Date.now() / 1000
 			})
 		})

@@ -142,11 +142,10 @@ async def _remove_by_field_handler_v1(collection: str, field: str, value: str):
 async def _fetch_joined_events_v1(user_id: str, response: Response):
 	return await fetch_joined_events_v1(user_id, response)
 
-
 # Non-secured (etc) endpoints V1
 @api_etc_v1.get('/fetch_time')
 async def _fetch_time_handler_v1():
-	return await fetch_time_handler_v1()
+	return fetch_time_handler_v1()
 
 
 # ensuring CORS policy supported

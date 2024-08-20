@@ -50,8 +50,12 @@ function Queues() {
 	
 			<div className='container mt-4 mb-5'>
 				{
-					queues.length == 0 &&
+					queues.length == 0 ?
 					<p>No queues...</p>
+					:
+					<div className={`alert alert-warning`}>
+						<p style={{marginBottom: '0px'}}>There is <b>no need to refresh the page</b> before the queue status changes...</p>
+					</div>
 				}
 
 				<div className='column'>
@@ -64,8 +68,10 @@ function Queues() {
 							{	
 								timestamp_ >= item.queue_finish ?
 									<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ true } >Missed</button>
+								: timestamp_ < item.queue_start ?
+									<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ true } onClick={ () => bookPlace(item) }>Available soon</button>
 								:
-									<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ !(timestamp_ > item.queue_start) } onClick={ () => bookPlace(item) }>Book a seat</button>
+									<button style={{width: '100%', fontSize: 22}} className='btn btn-primary' disabled={ false } onClick={ () => bookPlace(item) }>Book a seat</button>
 							}
 						</div>
 					)

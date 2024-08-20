@@ -11,7 +11,9 @@ function Booking() {
 	const [host, setHost] = useState({ floors: 0, sections: [[]], map_0_0: [] })
 	const [hostName, setHostName] = useState(undefined)
 	const [selectedFloor, setSelectedFloor] = useState(0)
+	const [scopedFloor, setScopedFloor] = useState(0)
 	const [selectedPart, setSelectedPart] = useState('0')
+	const [scopedPart, setScopedPart] = useState('0')
 	const [selectedSeat, setSelectedSeat] = useState(undefined)
 	const [floorButtons, setFloorButtons] = useState([])
 	const [sectionsButtons, setSectionButtons] = useState([])
@@ -63,8 +65,8 @@ function Booking() {
 			.then(resp => {
 				setHost(resp.data)
 
-				setSelectedFloor(0)
-				setSelectedPart(resp.data.sections[0][0])
+				setScopedFloor(0)
+				setScopedPart(resp.data.sections[0][0])
 			})
 			.catch(err => {
 				// console.log(err)
@@ -114,15 +116,22 @@ function Booking() {
 	}, [timer])
 
 	const changeFloor = (floor) => {
-		setSelectedFloor(floor)
-		setSelectedPart(host.sections[0][0])
+		setScopedFloor(floor)
+		setScopedPart(host.sections[0][0])
 	}
 
 	const formatSeat = (seat) => {
 		const splited = seat.split('_')
 		const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789'
+
+		const _floor = Number(splited[1])
+		const _section = splited[2]
+		const _shift = host[`shift_${_floor}_${_section}`]
+
+		const _row = alphabet.charAt(host['map_' + selectedFloor + '_' + selectedPart].length - Number(splited[3]) - 1 + _shift[0].charCodeAt(0) - 'A'.charCodeAt(0))
+		const _seat = host['map_' + selectedFloor + '_' + selectedPart][Number(splited[3])] - Number(splited[4]) + _shift[1 + Number(splited[3])] - 1
 		
-		return `${splited[0]}, floor ${Number(splited[1]) + 1}, ${splited[2].toLowerCase()} section, row ${ alphabet.charAt(host['map_' + selectedFloor + '_' + selectedPart].length - Number(splited[3]) - 1)}, seat ${Number(splited[4]) + 1}`
+		return `${splited[0]}, floor ${_floor + 1}, ${_section.toLowerCase()} section, row ${_row}, seat ${_seat}`
 	}
 
 	const takeSeat = () => {
@@ -130,7 +139,7 @@ function Booking() {
 			setSystemMessage('Choose any free seat.')
 			setSystemMessageStatus('warning')
 		} else if (takenSeats.hasOwnProperty(selectedSeat) == false) {
-			axios.post(`${apiUrl}/book_place`, { event_id: event_id, user_id: user_id, place_id: selectedSeat }, { headers: apiHeaders })
+			axios.post(`${apiUrl}/book_place`, { event_id: event_id, user_id: user_id, place_id: selectedSeat, loadable_place_id: formatSeat(selectedSeat) }, { headers: apiHeaders })
 			.then(resp => {
 				removeFromQueue()
 				callAlert('200. Your have booked a seat. You will receive a verification letter via Email. Show the letter at the event.', 'success')
@@ -174,7 +183,7 @@ function Booking() {
 				<div className='btn-group' role='group'>
 				{
 					Array(host.floors).fill().map((_, index) => (
-						<button onClick={ () => changeFloor(index) } type='button' className={ selectedFloor == index ? 'btn btn-primary' : 'btn btn-secondary' }>{ index + 1 }</button>
+						<button onClick={ () => changeFloor(index) } type='button' className={ scopedFloor == index ? 'btn btn-primary' : 'btn btn-secondary' }>{ index + 1 }</button>
 					))
 				}
 				</div>
@@ -184,8 +193,8 @@ function Booking() {
 				<p>Section:</p>
 				<div>
 				{
-					host.sections[selectedFloor].map((name, index) => (
-						<button onClick={ () => setSelectedPart(name) } type='button' className={ selectedPart == name ? 'btn btn-primary me-1 mb-1' : 'btn btn-secondary  me-1 mb-1' }>{ name }</button>
+					host.sections[scopedFloor].map((name, index) => (
+						<button onClick={ () => setScopedPart(name) } type='button' className={ scopedPart == name ? 'btn btn-primary me-1 mb-1' : 'btn btn-secondary  me-1 mb-1' }>{ name }</button>
 					))
 				}
 				</div>
@@ -194,15 +203,18 @@ function Booking() {
 			<div className='container mt-4 d-flex flex-column'>
 				<p>Seats:</p>
 			{
-				host[`map_${selectedFloor}_${selectedPart}`].map((seats, row) => (
+				host[`map_${scopedFloor}_${scopedPart}`].map((seats, row) => (
 					<>
 						<div className='btn-group' role='group'>
 						{
 							Array(seats).fill().map((_, col) => (
 								<button style={{ fontSize: 10, padding: 3 }} onClick={ () => {
-									if (takenSeats.hasOwnProperty(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) == false)
-										setSelectedSeat(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) 
-								}} type="button" class={ (takenSeats.hasOwnProperty(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) ? "btn btn-dark" : `${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}` == selectedSeat ? "btn btn-primary" : "btn btn-secondary") + ' border'}>{ takenSeats.hasOwnProperty(`${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}`) ? "x" : `${hostName}_${selectedFloor}_${selectedPart}_${row}_${col}` == selectedSeat ? "o" : "_" }</button>
+								if (takenSeats.hasOwnProperty(`${hostName}_${scopedFloor}_${scopedPart}_${row}_${col}`) == false) {
+									setSelectedSeat(`${hostName}_${scopedFloor}_${scopedPart}_${row}_${col}`) 
+									setSelectedFloor(scopedFloor) 
+									setSelectedPart(scopedPart) 
+								}
+								}} type="button" class={ (takenSeats.hasOwnProperty(`${hostName}_${scopedFloor}_${scopedPart}_${row}_${col}`) ? "btn btn-dark" : `${hostName}_${scopedFloor}_${scopedPart}_${row}_${col}` == selectedSeat ? "btn btn-primary" : "btn btn-secondary") + ' border'}>{ takenSeats.hasOwnProperty(`${hostName}_${scopedFloor}_${scopedPart}_${row}_${col}`) ? "x" : `${hostName}_${scopedFloor}_${scopedPart}_${row}_${col}` == selectedSeat ? "o" : "_" }</button>
 							))
 						}
 						</div>

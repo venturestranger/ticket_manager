@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { apiUrl, apiToken, apiHeaders, cookiesExpirationDays, bookingRefreshPageTime } from '../../config.js'
+import { apiUrl, apiToken, cookiesExpirationDays, bookingRefreshPageTime, apiAdminHeaders } from '../../config.js'
 import { useParams, useNavigate } from 'react-router-dom'
 import { formatTime, timestamp_ } from '../../utils.js'
 import logo from '../../logo.svg'
@@ -27,7 +27,7 @@ function Prebooking() {
 
 	useEffect(() => {
 		// acquire event info
-		axios.get(`${apiUrl}/event?id=${event_id}`, { headers: apiHeaders })
+		axios.get(`${apiUrl}/event?id=${event_id}`, { headers: apiAdminHeaders })
 		.then(resp => {
 			// required to check if only admins have an access
 			if (resp.data.hash != hash) {
@@ -37,7 +37,7 @@ function Prebooking() {
 			setHostName(resp.data.host)
 			setEvent(resp.data)
 
-			axios.get(`${apiUrl}/fetch_host?name=${resp.data.host}`, { headers: apiHeaders })
+			axios.get(`${apiUrl}/fetch_host?name=${resp.data.host}`, { headers: apiAdminHeaders })
 			.then(resp => {
 				setHost(resp.data)
 
@@ -56,7 +56,7 @@ function Prebooking() {
 			}
 		})
 
-		axios.get(`${apiUrl}/fetch_taken_seats?event_id=${event_id}`, { headers: apiHeaders })
+		axios.get(`${apiUrl}/fetch_taken_seats?event_id=${event_id}`, { headers: apiAdminHeaders })
 		.then(resp => {
 			setTakenSeats(resp.data)
 		})
@@ -73,12 +73,19 @@ function Prebooking() {
 	const formatSeat = (seat) => {
 		const splited = seat.split('_')
 		const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789'
+
+		const _floor = Number(splited[1])
+		const _section = splited[2]
+		const _shift = host[`shift_${_floor}_${_section}`]
+
+		const _row = alphabet.charAt(host['map_' + selectedFloor + '_' + selectedPart].length - Number(splited[3]) - 1 + _shift[0].charCodeAt(0) - 'A'.charCodeAt(0))
+		const _seat = host['map_' + selectedFloor + '_' + selectedPart][Number(splited[3])] - Number(splited[4]) + _shift[1 + Number(splited[3])] - 1
 		
-		return `${event.title}; ${splited[0]}, floor ${Number(splited[1]) + 1}, ${splited[2].toLowerCase()} section, row ${ alphabet.charAt(host['map_' + selectedFloor + '_' + selectedPart].length - Number(splited[3]) - 1)}, seat ${Number(splited[4]) + 1}`
+		return `${event.title}; ${splited[0]}, floor ${_floor + 1}, ${_section.toLowerCase()} section, row ${_row}, seat ${_seat}`
 	}
 
 	const prebookSeats = () => {
-		axios.get(`${apiUrl}/remove_by_field?collection=order&field=event_id&value=${event_id}`, { headers: apiHeaders })
+		axios.get(`${apiUrl}/remove_by_field?collection=order&field=event_id&value=${event_id}`, { headers: apiAdminHeaders })
 		.then(resp => {
 			for (const el in takenSeats) {
 				axios.post(`${apiUrl}/order`, {
@@ -87,7 +94,7 @@ function Prebooking() {
 					place_id: el,
 					loadable_place_id: formatSeat(el),
 					timestamp: takenSeats[el][1] == null ? timestamp_ : takenSeats[el][1]
-				}, { headers: apiHeaders })
+				}, { headers: apiAdminHeaders })
 			}
 		})
 		.catch(err => {

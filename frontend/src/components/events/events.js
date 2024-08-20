@@ -53,7 +53,7 @@ function Events() {
 	const initQueue = (id) => {
 		axios.post(`${apiUrl}/init_queue`, { event_id: id, user_id: localStorage.getItem('user_id') }, { withCredentials: true, headers: apiHeaders })
 		.then(resp => {
-			setSystemMessage('You have joined the queue.')
+			setSystemMessage('You have joined the queue. Go the "Queues" page to book a seat. You will also receive an email notification.')
 			setSystemMessageStatus('success')
 		})
 		.catch(err => {
