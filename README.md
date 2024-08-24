@@ -26,4 +26,7 @@ NUTicket uses Google OAuth for secure user authentication. Users are required to
 
 ## Demo
 
-https://github.com/venturestranger/ticket_manager/blob/main/video.mp4
+https://github.com/user-attachments/assets/213ef6e6-7238-4fb9-91b6-d4aeb27b72b6
+
+
+
