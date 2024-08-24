@@ -27,6 +27,8 @@ NUTicket uses Google OAuth for secure user authentication. Users are required to
 ## Technologies used
 - **Backend**: Python, FastAPI, MongoDB
 - **Frontend**: JavaScript, ReactJS, Bootstrap
+- **Admin**: Python, Streamlit
+
 
 ## Demo
 
