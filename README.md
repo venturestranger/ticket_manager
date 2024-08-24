@@ -24,6 +24,10 @@ NUTicket is a web application designed to simplify the process of ordering ticke
 
 NUTicket uses Google OAuth for secure user authentication. Users are required to log in using their Nazarbayev University email (@nu.edu.kz). All notifications regarding queues, bookings, and event details are sent to the email address associated with the user's login.
 
+## Technologies used
+- **Backend**: Python, FastAPI, MongoDB
+- **Frontend**: JavaScript, ReactJS, Bootstrap
+
 ## Demo
 
 https://github.com/user-attachments/assets/213ef6e6-7238-4fb9-91b6-d4aeb27b72b6
