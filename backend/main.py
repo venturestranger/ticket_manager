@@ -149,7 +149,7 @@ async def _fetch_time_handler_v1():
 
 
 # ensuring CORS policy supported
-api_v1.add_middleware(
+api.add_middleware(
 	CORSMiddleware,
 	allow_origins=['http://localhost:3000'],
 	allow_credentials=True,
