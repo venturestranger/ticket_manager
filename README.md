@@ -1,7 +1,3 @@
-Here’s a detailed README file for the NUTicket project:
-
----
-
 # NUTicket
 
 NUTicket is a web application designed to simplify the process of ordering tickets and managing queues for local events at Nazarbayev University. The system allows users to browse upcoming events, join queues, receive notifications about their queue positions, and book seats with ease. NUTicket is designed to handle high user traffic and provides a smooth, efficient experience for event-goers.
