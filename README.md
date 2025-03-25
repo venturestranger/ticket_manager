@@ -1,11 +1,11 @@
-# NUTicket
+# TicketApp
 
-NUTicket is a web application designed to simplify the process of ordering tickets and managing queues for local events at Nazarbayev University. The system allows users to browse upcoming events, join queues, receive notifications about their queue positions, and book seats with ease. NUTicket is designed to handle high user traffic and provides a smooth, efficient experience for event-goers.
+TicketApp is a web application designed to simplify the process of ordering tickets and managing queues for events in local universities. The system allows users to browse upcoming events, join queues, receive notifications about their queue positions, and book seats with ease. NUTicket is designed to handle high user traffic and provides a smooth, efficient experience for event-goers.
 
 ## Features
 
 - **Events Page**:
-  - Displays a list of all upcoming events at Nazarbayev University.
+  - Displays a list of all upcoming events.
   - Users can join the queue for events they wish to attend.
 
 - **Queues Page**:
@@ -22,7 +22,7 @@ NUTicket is a web application designed to simplify the process of ordering ticke
 
 ## User Authentication
 
-NUTicket uses Google OAuth for secure user authentication. Users are required to log in using their Nazarbayev University email (@nu.edu.kz). All notifications regarding queues, bookings, and event details are sent to the email address associated with the user's login.
+TicketApp uses Google OAuth for secure user authentication. Users are required to log in using their university email (...@nu.edu.kz for example). All notifications regarding queues, bookings, and event details are sent to the email address associated with the user's login.
 
 ## Technologies used
 - **Backend**: Python, FastAPI, MongoDB
