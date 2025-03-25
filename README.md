@@ -1,6 +1,6 @@
 # TicketApp
 
-TicketApp is a web application designed to simplify the process of ordering tickets and managing queues for events in local universities. The system allows users to browse upcoming events, join queues, receive notifications about their queue positions, and book seats with ease. NUTicket is designed to handle high user traffic and provides a smooth, efficient experience for event-goers.
+TicketApp is a web application designed to simplify the process of ordering tickets and managing queues for events in local universities. The system allows users to browse upcoming events, join queues, receive notifications about their queue positions, and book seats with ease. TicketApp is designed to handle high user traffic and provides a smooth, efficient experience for event-goers.
 
 ## Features
 
